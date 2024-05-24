@@ -27,7 +27,7 @@ def convert_rupt2geo(rupt_file,vs30_csv,geo_file,slip_percent=0):
     #get rupture
     rupt = np.genfromtxt(rupt_file)
     #keep only those with slip
-    i = np.where(rupt[:,12]>0)[0]
+    i = np.where(np.sqrt(rupt[:,9]**2 + rupt[:,8]**2)>0)[0]
     rupt = rupt[i,:]
     
     #get coordaintes and vs30 values

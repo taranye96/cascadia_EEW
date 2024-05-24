@@ -6,6 +6,11 @@ Created on Tue Feb 22 10:23:57 2022
 @author: tnye
 """
 
+##############################################################################
+# This script generates Cascadia ruptures and waveforms using the Mudpy Github
+# repository.
+##############################################################################
+
 # Imports
 from mudpy import fakequakes,runslip,forward
 import numpy as np
@@ -15,25 +20,23 @@ import os
 import time
 
 ########                            GLOBALS                             ########
-#home='/home/tnye/onc/simulations/'
-#project_name='batch_09'
-home='/home/tnye/onc/simulations/'
-project_name='cascadia_longer_wfs'
+home='/Users/tnye/ONC/simulations/'
+project_name='cascadia'
 run_name='cascadia'
 ################################################################################
 
 
 ##############         What do you want to do?
-init=0
-make_ruptures=0
-make_GFs=0
-make_synthetics=0
+init=1
+make_ruptures=1
+make_GFs=1
+make_synthetics=1
 make_waveforms=1
-make_hf_waveforms=0
-match_filter=0
+make_hf_waveforms=1
+match_filter=1
 # Things that only need to be done once
 load_distances=0
-G_from_file=1
+G_from_file=0
 
 
 # DEFINE PARAMETERS
@@ -46,37 +49,22 @@ hot_start=0                                  # If code quits in the middle of ru
 model_name='cascadia.mod'                    # Velocity model file name
 #fault_base = 'cascadia_north45_25km'
 fault_base='cascadia_slab2_40km'       # Fault model name
-#fault_base='leech_river'
 fault_name = f'{fault_base}.fault'
 mean_slip_name=None                          # Set to path of .rupt file if patterning synthetic runs after a mean rupture model
 rupture_list='ruptures.list'                 # Name of list of ruptures that are used to generate waveforms. 'ruptures.list' uses the full list of ruptures FakeQuakes creates. If you create file with a sublist of ruptures, use that file name.
 distances_name='cascadia'                        # Name of matrix with estimated distances between subfaults i and j for every subfault pair
 
-
 # Source parameters
 #UTM_zone='10T' # UTM_zone for rupture region 
 UTM_zone='10U'
 time_epi=UTCDateTime('2023-03-22T00:00:00Z') # Origin time of event (can set to any time, as long as it's not in the future)
-target_Mw=np.array([6.8])
-#target_Mw=np.linspace(6.8,9.5,28)     # Desired magnitude(s), can either be one value or an array
-#target_Mw=np.arange(4.5,7.0,0.5)
-#target_Mw = np.array([4.5, 5, 5.5, 6])
-#target_Mw = np.array([6.5,7.0,7.5,8.0,8.5,9,9.5])
-#target_Mw = np.array([6,6.5,7,7.5,8,8.5,9])
-#target_Mw = np.array([6])
-
+target_Mw=np.linspace(6.8,9.5,28)     # Desired magnitude(s), can either be one value or an array
 hypocenter=None                              # Coordinates of subfault closest to desired hypocenter, or set to None for random
 force_hypocenter=False                       # Set to True if hypocenter specified
 rake=90                                      # Average rake for subfaults
 scaling_law='T'                              # Type of rupture: T for thrust, S for strike-slip, N for normal
 force_magnitude=False                       # Set to True if you want the rupture magnitude to equal the exact target magnitude
 force_area=False                            # Set to True if you want the ruptures to fill the whole fault model
-
-force_lat=False
-#latmin=44.5
-#latmax=50.8
-latmin=None
-latmax=None
 
 # Correlation function parameters
 hurst=0.4                                    # Hurst exponent form Melgar and Hayes 2019
@@ -97,8 +85,6 @@ source_time_function='dreger'                # options are 'triangle' or 'cosine
 stf_falloff_rate=4                           # Only affects Dreger STF, 4-8 are reasonable values
 num_modes=200                                 # Number of modes in K-L expansion
 slab_name='cas_slab2_dep_02.24.18.xyz'       # Slab 2.0 Ascii file for 3D geometry, set to None for simple 2D geometry
-#slab_name='leech_river_slab.xyz'
-#mesh_name='cascadia_slab2_40km.mshout'       # GMSH output file for 3D geometry, set to None for simple 2D geometry
 mesh_name = f'{fault_base}.mshout'
 
 # WAVEFORM PARAMETERS
@@ -147,27 +133,27 @@ start = time.time()
 #Initalize project folders
 if init==1:
     fakequakes.init(home,project_name)
-copy2(f'/home/tnye/onc/files/{model_name}', home+project_name+'/structure')
-copy2(f'/home/tnye/onc/files/{fault_name}', home+project_name+'/data/model_info')
-copy2('/home/tnye/onc/files/' + GF_list, home+project_name+'/data/station_info')
-copy2(f'/home/tnye/onc/files/{slab_name}', home+project_name+'/data/model_info')
-copy2(f'/home/tnye/onc/files/{mesh_name}', home+project_name+'/data/model_info')
+copy2(f'/Users/tnye/ONC/files/{model_name}', home+project_name+'/structure')
+copy2(f'/Users/tnye/ONC/files/{fault_name}', home+project_name+'/data/model_info')
+copy2('/Users/tnye/ONC/files/' + GF_list, home+project_name+'/data/station_info')
+copy2(f'/Users/tnye/ONC/files/{slab_name}', home+project_name+'/data/model_info')
+copy2(f'/Users/tnye/ONC/files/{mesh_name}', home+project_name+'/data/model_info')
 
 if load_distances==1:
-    source_folder = f'/home/tnye/onc/data/distances/{fault_base}/'
+    source_folder = f'/Users/tnye/ONC/data/distances/{fault_base}/'
     destination_folder = home+project_name+'/data/distances/'
     for file_name in os.listdir(source_folder):
         source = source_folder + file_name
         destination = destination_folder + file_name
         copy(source, destination)
 
-#if G_from_file==1:
-    #source_folder = f'/home/tnye/onc/data/GFs/{fault_base}.{G_name}/'
-    #destination_folder = home+project_name+'/GFs/matrices/'
-    #for file_name in os.listdir(source_folder):
-     #   source = source_folder + file_name
-      #  destination = destination_folder + file_name
-       # copy(source, destination)
+if G_from_file==1:
+    source_folder = f'/Users/tnye/ONC/data/GFs/{fault_base}.{G_name}/'
+    destination_folder = home+project_name+'/GFs/matrices/'
+    for file_name in os.listdir(source_folder):
+        source = source_folder + file_name
+        destination = destination_folder + file_name
+        copy(source, destination)
 
 
 # Make a text file with the parameters
@@ -187,13 +173,6 @@ w.close()
 
 #Generate rupture models
 if make_ruptures==1: 
-    #fakequakes.generate_ruptures(home,project_name,run_name,fault_name,slab_name,mesh_name,load_distances,
-    #    distances_name,UTM_zone,target_Mw,model_name,hurst,Ldip,Lstrike,num_modes,Nrealizations,rake,
-    #    rise_time_depths,time_epi,max_slip,source_time_function,lognormal,slip_standard_deviation,scaling_law,
-    #    ncpus,mean_slip_name=mean_slip_name,force_magnitude=force_magnitude,force_area=force_area,
-    #    hypocenter=hypocenter,force_hypocenter=force_hypocenter,shear_wave_fraction_shallow=shear_wave_fraction_shallow,
-    #    shear_wave_fraction_deep=shear_wave_fraction_deep,max_slip_rule=max_slip_rule)    
-    
     fakequakes.generate_ruptures(home,project_name,run_name,fault_name,slab_name,mesh_name,load_distances,
                 distances_name,UTM_zone,target_Mw,model_name,hurst,Ldip,Lstrike,num_modes,Nrealizations,rake,rise_time,
                 rise_time_depths,time_epi,max_slip,source_time_function,lognormal,slip_standard_deviation,scaling_law,
@@ -217,13 +196,6 @@ if make_waveforms==1:
 
 #Make semistochastic HF waveforms         
 if make_hf_waveforms==1:
-    #forward.hf_waveforms(home,project_name,fault_name,rupture_list,GF_list,
-    #            model_name,run_name,dt,NFFT,G_from_file,G_name,rise_time_depths,
-    #            moho_depth_in_km,ncpus,Qexp,source_time_function=source_time_function,
-    #            duration=duration,stf_falloff_rate=stf_falloff_rate,hf_dt=hf_dt,
-    #            Pwave=Pwave,hot_start=hot_start,stress_parameter=stress_parameter,
-    #            high_stress_depth=high_stress_depth,kappa=kappa)
-
     forward.hf_waveforms(home,project_name,fault_name,rupture_list,GF_list,
                 model_name,run_name,dt,NFFT,G_from_file,G_name,rise_time_depths,
                 moho_depth_in_km,ncpus,source_time_function=source_time_function,
@@ -236,7 +208,4 @@ if make_hf_waveforms==1:
 if match_filter==1:
     forward.match_filter(home,project_name,fault_name,rupture_list,GF_list,
             zero_phase,order,fcorner_low,fcorner_high)
-
-end = time.time()
-#print ("2 Mag 9 LF, 6 stations, 16 CPUs:", end - start)
 

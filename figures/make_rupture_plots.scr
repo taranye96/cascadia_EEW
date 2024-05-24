@@ -1,0 +1,10 @@
+#!/bin/bash
+
+# Gather all .rupt files
+
+cd ~/ONC/simulations/cascadia/output/ruptures
+
+for i in *.java; do
+    [ -f "$i" ] || break
+    ...
+done
