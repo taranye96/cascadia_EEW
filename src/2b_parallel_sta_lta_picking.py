@@ -50,10 +50,10 @@ stn_types = ['Cas-ONC-Onshore-StrongMotion','Cas-ONC-Offshore-StrongMotion',
 ruptures = np.genfromtxt(f'/Users/tnye/ONC/simulations/{batch}/data/ruptures.list',dtype=str)
 
 # Read in arrival time dataframe
-arriv_df = pd.read_csv(f'/Users/tnye/ONC/event_detection/{batch}_parrivals_taupy.csv')
+arriv_df = pd.read_csv(f'/Users/tnye/ONC/event_detection/p_waves/{batch}_parrivals.csv')
 
 # Set up folder to save sta_lta csv files for different ranks (parallelized)
-outdir = '/Users/tnye/ONC/event_detection/sta_lta_mpi_polar'
+outdir = '/Users/tnye/ONC/event_detection/sta_lta/sta_lta_mpi_polar'
 if not path.exists(outdir):
     makedirs(outdir)
 

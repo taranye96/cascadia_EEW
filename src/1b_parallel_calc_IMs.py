@@ -50,10 +50,10 @@ stn_types = ['lf','hf']
 gnss_noise_perc = 10
 
 # Read in station df (contains station names and coordinates)
-stn_df = pd.read_csv(f'/Users/tnye/ONC/data/station_info/{stn_type}_list.txt', delimiter=',')
+stn_df = pd.read_csv(f'/Users/tnye/ONC/files/fakequakes/station_info/{stn_type}_list.txt', delimiter=',')
 
 # Read in VS30 df
-vs30_csv = f'/Users/tnye/ONC/data/files/vs30_coords_{stn_type}.txt'
+vs30_csv = f'/Users/tnye/ONC/files/vs30/vs30_coords_{stn_type}.txt'
 
 # Read in rupture list
 ruptures = np.genfromtxt(f'/Users/tnye/ONC/simulations/{batch}/data/ruptures.list',dtype=str)
@@ -111,11 +111,11 @@ for index in recvbuf:
 
     # Path to save output csv
     if stn_type == 'onc-onshore' and 'lf' in stn_types:
-        flatfile_path = f'/Users/tnye/ONC/flatfiles/IMs/{batch}/{run}_{stn_type}_gnss-{gnss_noise_perc}p.csv'
+        flatfile_path = f'/Users/tnye/ONC/flatfiles/groundmotion_analysis/{batch}/{run}_{stn_type}_gnss-{gnss_noise_perc}p.csv'
     elif stn_type == 'onc-onshore' and 'lf' not in stn_types:
-        flatfile_path = f'/Users/tnye/ONC/flatfiles/IMs/{batch}/{run}_{stn_type}_strongmotion.csv'
+        flatfile_path = f'/Users/tnye/ONC/flatfiles/groundmotion_analysis/{batch}/{run}_{stn_type}_strongmotion.csv'
     elif stn_type != 'onc-onshore':
-        flatfile_path = f'/Users/tnye/ONC/flatfiles/IMs/{batch}/{run}_{stn_type}.csv'
+        flatfile_path = f'/Users/tnye/ONC/flatfiles/groundmotion_analysis/{batch}/{run}_{stn_type}.csv'
     
     # Synthetic miniseed directories
     wf_dir = f'/Users/tnye/ONC/simulations/{batch}/waveforms_data_curation'

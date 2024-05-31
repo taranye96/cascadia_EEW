@@ -6,13 +6,18 @@ Created on Thu Oct 19 17:28:07 2023
 @author: tnye
 """
 
+##############################################################################
+# This script makes Figure 2 in the paper, which shows the example components
+# of broadband waveform simulation.
+##############################################################################
+
 # Imports
-import numpy as np
 from obspy import read
 import matplotlib.ticker as ticker
 from matplotlib.ticker import MultipleLocator
 import matplotlib.pyplot as plt
 
+# Read in example waveforms
 lf_st = read('/Users/tnye/ONC/simulations/cascadia_longer_wfs/output/waveforms/cascadia.000050/AL2H.LYE.sac')
 hf_st = read('/Users/tnye/ONC/simulations/cascadia_longer_wfs/output/waveforms/cascadia.000050/AL2H.HNE.mpi.sac')
 bb_st = read('/Users/tnye/ONC/simulations/cascadia_longer_wfs/output/waveforms/cascadia.000050/AL2H.bb.HNE.sac')

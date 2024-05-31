@@ -1,0 +1,99 @@
+#!/bin/bash
+gmt gmtset FONT_ANNOT_PRIMARY=12p,Helvetica
+gmt gmtset MAP_FRAME_TYPE plain
+gmt gmtset MAP_FRAME_PEN thicker,black
+gmt gmtset PS_MEDIA=a2
+gmt gmtset FORMAT_GEO_MAP=ddd
+#################################
+
+# Input variables
+batch=$1
+peak_slip=$2
+Mw=$3
+rupt_name=$4
+run_num=$5
+lon=$6
+lat=$7
+inc=$8
+scale=$9
+
+# Map extent
+LONMIN=-129
+LONMAX=-121.75 # Longitude range of plots
+LATMIN=39.5
+LATMAX=51.5 # Latitude range of plotslots
+REGION=-R${LONMIN}/${LONMAX}/${LATMIN}/${LATMAX}
+SCALE=2i
+BOUNDS="-BWesN -B2p"
+
+# In files
+slab2=/Users/tnye/slab_models/Cascadia/cas_slab2_dep_02.24.18.grd
+DEM=/Users/tnye/DEMs/cascadia30.grd
+ruptures_path=/Users/tnye/ONC/GMT/plotting_files
+rupt_epi=${ruptures_path}/rupture_epi/${batch}/${rupt_name}_epi.txt
+rupt_xy=${ruptures_path}/rupture_xy/${batch}/${rupt_name}.xy
+epic_grid_kml=/Users/tnye/GoogleEarth/EPIC_detection_grid.kml
+epic_grid_txt=/Users/tnye/GoogleEarth/EPIC_detection_grid.txt
+topo_no=/Users/tnye/ONC/GMT/topo/topo_no.grd
+topo=/Users/tnye/ONC/GMT/topo/topo.grad
+slip_cpt=/Users/tnye/ONC/GMT/cpt/slip.cpt
+topo_cpt=/Users/tnye/ONC/GMT/cpt/topo.cpt
+bathy_cpt=/Users/tnye/ONC/GMT/cpt/bathy.cpt
+
+# Out files
+Mlabel=/Users/tnye/ONC/GMT/plotting_files/Mlabel.txt
+
+# Out file name
+out=cascadia-$run_num
+
+#################################
+
+# Convert kml to txt
+gmt kml2gmt $epic_grid_kml -V > $epic_grid_txt
+
+# Cpt
+gmt makecpt -C/Users/tnye/cpt/magma_white.cpt -I -T0/$scale/0.02 -Z > $slip_cpt
+gmt makecpt -C/Users/tnye/cpt/gray_lt.cpt -T-0.65/0.65/0.01 -Z -V0 > $topo_cpt
+gmt makecpt -C/Users/tnye/cpt/gr58_hult.cpt -T-5000/0/1 -Z -I -V0 > $bathy_cpt
+
+# Make map
+gmt psbasemap $REGION -JM$SCALE $BOUNDS -K > $out.eps
+
+#topo/bathy
+gmt pscoast -S197/212/253 -Di -R -J -O -K >> $out.eps
+gmt pscoast -Q -R -J -O -K >> $out.eps
+gmt pscoast -Gc -Di -R -J -O -K >> $out.eps
+gmt grdimage topo.grad -R -J -Ctopo.cpt -O -K >> $out.eps
+gmt pscoast -Q -R -J -O -K >> $out.eps
+
+# Now plot the triangles
+gmt psxy $rupt_xy -R -J -L -C$slip_cpt -O -K >> $out.eps
+gmt psxy $rupt_xy -R -J -W0.01p,180/180/180 -O -K >> $out.eps
+
+#Draw coastline
+gmt pscoast $REGION -J $BOUNDS -A2 -Df -N2/0.2p -N1/0.2p -W0.2p -Lf-96.7/14.9/15/100k+u -O -K >> $out.eps
+
+# Plot epicenter
+gmt psxy $rupt_epi -R$range -J$J -Dj0.08[0.06] -Sa0.45c -W.5p,black -B -O -K >> ${out}.eps
+
+# Plot detection grids
+gmt psxy $epic_grid_txt -R -J -W1.25p,54/156/110 -K -O >> ${out}.eps
+gmt psxy -R -J -W1.25p,142/83/201 -K -O >> ${out}.eps << BOXEND
+-132.75 46
+-122 46
+-122 52
+-132.75 52
+BOXEND
+
+gmt psscale -C$slip_cpt -D0.9i/-0.2i/1.6i/0.12ih -B$inc:"Slip(m)": --FONT_LABEL=12p,Helvetica,black -O -K  >> $out.eps
+
+# Add Magnitude
+echo -127.7 40.0 M${Mw} > $Mlabel
+gmt pstext $Mlabel -R -J -F+f14p,white -N -O  >> $out.eps
+
+#Convert to raster and move
+echo converting to raster
+gmt psconvert $out.eps -Tj -A -P
+echo cleaning up
+rm $out.eps
+mv $out.jpg /Users/tnye/ONC/manuscript/figures/rupture_models/test_ruptures/jpeg/${out}.jpg

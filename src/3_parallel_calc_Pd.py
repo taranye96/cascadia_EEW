@@ -45,7 +45,7 @@ ruptures = np.genfromtxt(f'/Users/tnye/ONC/simulations/{batch}/data/ruptures.lis
 windows = [1,2,4,6,12,20]
 
 # Read in arrival time df
-arriv_df = pd.read_csv('/home/tnye/onc/p_waves/cascadia_longer_wfs/cascadia_longer_wfs_arrivals_taupy.csv')
+arriv_df = pd.read_csv('/Users/tnye/ONC/event_detection/p_waves/cascadia_parrivals.csv')
 
 ############################# Start Parallelization ###########################
 
@@ -79,11 +79,11 @@ print('Rank: '+str(rank)+' received data='+str(recvbuf))
 ############################### Do Calculations ###############################
 
 # Make directory to save Pd csv files (parallelize)
-if not path.exists(f'/Users/tnye/ONC/magnitude_estimation/Pd_mpi_files/{batch}/noisy_BB_notrunc'):
-    makedirs(f'/Users/tnye/ONC/magnitude_estimation/Pd_mpi_files/{batch}/noisy_BB_notrunc')
+if not path.exists(f'/Users/tnye/ONC/magnitude_estimation/Pd_files/Pd_mpi_files/{batch}/cascadia_noisy'):
+    makedirs(f'/Users/tnye/ONC/magnitude_estimation/Pd_files/Pd_mpi_files/{batch}/cascadia_noisy')
 
 # Initialize a file to save Pd values to
-outfile = open(f'/home/tnye/onc/magnitude_estimation/Pd_mpi_files/{batch}/noisy_BB_notrunc/Pd_{rank}.csv', 'w')
+outfile = open(f'/Users/tnye/ONC/magnitude_estimation/Pd_files/Pd_mpi_files/{batch}/cascadia_noisy/Pd_{rank}.csv', 'w')
 outfile.write('Event,Station,Station Type,Magnitude,Rhyp,Repi,1s_Pd_logcm,2s_Pd_logcm,4s_Pd_logcm,6s_Pd_logcm,12s_Pd_logcm,20s_Pd_logcm\n')
 
 for index in recvbuf:

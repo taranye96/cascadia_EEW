@@ -133,11 +133,11 @@ start = time.time()
 #Initalize project folders
 if init==1:
     fakequakes.init(home,project_name)
-copy2(f'/Users/tnye/ONC/files/{model_name}', home+project_name+'/structure')
-copy2(f'/Users/tnye/ONC/files/{fault_name}', home+project_name+'/data/model_info')
-copy2('/Users/tnye/ONC/files/' + GF_list, home+project_name+'/data/station_info')
-copy2(f'/Users/tnye/ONC/files/{slab_name}', home+project_name+'/data/model_info')
-copy2(f'/Users/tnye/ONC/files/{mesh_name}', home+project_name+'/data/model_info')
+copy2(f'/Users/tnye/ONC/files/fakequakes/structure/{model_name}', home+project_name+'/structure')
+copy2(f'/Users/tnye/ONC/files/fakequakes/model_info/{fault_name}', home+project_name+'/data/model_info')
+copy2('/Users/tnye/ONC/files/fakequakes/station_info' + GF_list, home+project_name+'/data/station_info')
+copy2(f'/Users/tnye/ONC/files/fakequakes/model_info/{slab_name}', home+project_name+'/data/model_info')
+copy2(f'/Users/tnye/ONC/files/fakequakes/model_info/{mesh_name}', home+project_name+'/data/model_info')
 
 if load_distances==1:
     source_folder = f'/Users/tnye/ONC/data/distances/{fault_base}/'

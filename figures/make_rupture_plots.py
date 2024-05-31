@@ -6,26 +6,27 @@ Created on Mon Jul 25 21:18:18 2022
 @author: tnye
 """
 
+##############################################################################
+# This script makes Figure 3 in the paper, which shows the results of the 
+# STA/LTA event detection analysis. 
+##############################################################################
+
 # Imports
 import numpy as np
 from glob import glob
-from os import chdir, path, mkdir
+from os import chdir, path, makedirs
 import subprocess
 from mudpy import gmttools
 
-chdir('/Users/tnye/ONC/GMT')
-
-batch = 'cascadia_longer_wfs'
+batch = 'cascadia'
 
 rupt_files = sorted(glob(f'/Users/tnye/ONC/simulations/{batch}/output/ruptures/*.rupt'))
 
 # Make output folder
-if not path.exists(f'/Users/tnye/ONC/rupture_models/{batch}'):
-    mkdir(f'/Users/tnye/ONC/rupture_models/{batch}')
+if not path.exists(f'/Users/tnye/ONC/GMT/plotting_files/rupture_xy/{batch}'):
+    makedirs(f'/Users/tnye/ONC/GMT/plotting_files/rupture_xy/{batch}')
 
-if not path.exists(f'/Users/tnye/ONC/figures/png/rupture_models/{batch}'):
-    mkdir(f'/Users/tnye/ONC/figures/png/rupture_models/{batch}')
-
+# Loop over ruptures
 for rupt_file in rupt_files:
     
     rupt_data = np.genfromtxt(rupt_file)
@@ -41,10 +42,9 @@ for rupt_file in rupt_files:
     run = rupt_file.split('/')[-1].strip('.rupt')
     run_num = run.split('.')[-1]
     
-    f = open(f'/Users/tnye/ONC/rupture_models/{run}_epi.txt', 'w')
+    f = open(f'/Users/tnye/ONC/GMT/plotting_files/rupture_epi/{batch}/{run}_epi.txt', 'w')
     f.write(f'{lon},{lat}')
     f.close()
-
     
     mag = round(float(lines[15].split(' ')[-1].strip('\n')),1)
     
@@ -75,8 +75,8 @@ for rupt_file in rupt_files:
         scale = max_slip
 
     # Make .xy file
-    meshfile = '/Users/tnye/ONC/data/fault_info/cascadia_slab2_40km.mshout'
-    outfile = f'/Users/tnye/ONC/rupture_models/{batch}/{run}.xy'
+    meshfile = '/Users/tnye/ONC/files/fakequakes/model_info/cascadia_slab2_40km.mshout'
+    outfile = f'/Users/tnye/ONC/GMT/plotting_files/rupture_xy/{batch}/{run}.xy'
 
     gmttools.triangular_rupt_2_gmt(meshfile,rupt_file,outfile)
 

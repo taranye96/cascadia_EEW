@@ -18,7 +18,7 @@ import signal_average_fns as avg
 import IM_fns
 
 
-velmod = np.genfromtxt('/Users/tnye/ONC/files/cascadia.mod')
+velmod = np.genfromtxt('/Users/tnye/ONC/files/fakequakes/structure/cascadia.mod')
 
 
 d = []

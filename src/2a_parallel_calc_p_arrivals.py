@@ -42,13 +42,13 @@ batch = 'cascadia'
 station_types = ['onc_onshore','onc_offshore','pnsn']
 
 # Gather .log files
-ruptures = sorted(glob(f'/home/tnye/onc/simulations/{batch}/output/ruptures/*.log'))
+ruptures = sorted(glob(f'/Users/tnye/ONC/simulations/{batch}/output/ruptures/*.log'))
 
 # Read in station metadata
-metadata = pd.read_csv('/home/tnye/onc/data/station_info/station_metadata.csv')
+metadata = pd.read_csv('/Users/tnye/ONC/data/station_info/station_metadata.csv')
 
 # Build velocity model
-velmod = TauPyModel(model=f'/home/tnye/onc/simulations/{batch}/structure/cascadia.npz') # velocity model
+velmod = TauPyModel(model=f'/Users/tnye/ONC/simulations/{batch}/structure/cascadia.npz') # velocity model
 
 
 ############################# Start Parallelization ###########################
@@ -116,7 +116,7 @@ for index in recvbuf:
     for stn_type in station_types:
         
         # Read in station file
-        stn_df = pd.read_csv(f'/home/tnye/onc/data/station_info/{stn_type}_list.txt')
+        stn_df = pd.read_csv(f'/Users/tnye/ONC/data/station_info/{stn_type}_list.txt')
         
         # Get stations and coords
         stations = stn_df['#station']

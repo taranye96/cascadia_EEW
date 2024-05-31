@@ -6,31 +6,34 @@ Created on Sat Mar 26 10:24:33 2022
 @author: tnye
 """
 
+##############################################################################
+# This script makes Figure 4 in the paper, which shows the P-wave amplitude
+# (Pd) – magnitude scaling for different time windows. 
+##############################################################################
+
 # Imports
 from glob import glob
 import pandas as pd
-from numpy import genfromtxt,where,ones,arange,polyfit,tile,zeros,linspace,mean, nanmean,array
+from numpy import genfromtxt
 import numpy as np
 import matplotlib.pyplot as plt
-from matplotlib.ticker import MultipleLocator, ScalarFormatter
+from matplotlib.ticker import MultipleLocator
 import seaborn as sns
 
-# Set parameters
-
+# Time windows
 windows = [1, 2, 4, 6, 12, 20]
 
-dist_lim = 1000
+# Distance limits to group Pd values by
 dist_lims = [200,1200,500]
 
-var_folder = '100q_1r'
+# Read in Pd dataframe
+Pd_df = pd.read_csv('/Users/tnye/ONC/magnitude_estimation/Pd_files/Pd_cascadia_noisy.csv')
 
-# Pd_df = pd.read_csv('/Users/tnye/ONC/magnitude_estimation/Pd_cascadia_longer_wfs_withnoise.csv')
-# Pd_df = pd.read_csv('/Users/tnye/ONC/magnitude_estimation/Pd_files/Pd_cascadia_longer_wfs_noisy_BB.csv')
-Pd_df = pd.read_csv('/Users/tnye/ONC/magnitude_estimation/Pd_files/noisy_BB_notrunc.csv')
-# kalman_df = pd.read_csv(f'/Users/tnye/ONC/magnitude_estimation/Pd_cascadia_longer_wfs_kalman_withnoise_{var_folder}_rot.csv')
-gold_dfs = sorted(glob(f'/Users/tnye/ONC/magnitude_estimation/pd-Mw_scaling/*.csv'))
+# Gather files with Goldberg and Melgar (2020) scaling models
+gold_dfs = sorted(glob('/Users/tnye/ONC/magnitude_estimation/GM20_pd-Mw_scaling/*.csv'))
 
-DTAmps=genfromtxt('/Users/tnye/ONC/files/DT2019_Amplitudes.txt')
+# Read in file with observed Pd values (from Trugman et al., 2019)
+DTAmps=genfromtxt('/Users/tnye/ONC/files/DT2019_files/DT2019_Amplitudes.txt')
 obs_events = np.unique(DTAmps[:,0])
 obs_Pd = np.array([])
 obs_var = np.array([])
@@ -48,20 +51,19 @@ for event in obs_events:
 obs_Pd = obs_Pd.reshape(-1, len(event_Pd))
 obs_var = obs_var.reshape(-1, len(event_var))
 
-# Begin plotting
+# Make figure
 plt.rcParams["font.family"] = "Helvetica"
 hfont = {'fontname':'Helvetica'}
 plt.rcParams['pdf.fonttype'] = 42
-# sns.set_style('dark')
 sns.set_style('whitegrid')
 
 fig, axs = plt.subplots(2,3,figsize=(6.5,4.5))
 
+# Loop over time windows
 for i in range(len(windows)):
     
     TW = windows[i]
     
-    # Choose figure axis
     if i < 3:
         ax = axs[0,i]
         ax.set_xticklabels([])
@@ -75,22 +77,23 @@ for i in range(len(windows)):
     
     colors = ['mediumblue','green','goldenrod']
     sim_var = []
-    for j, dist_lim in enumerate(dist_lims):
-        
     
-        # Get Pd and Mw from dataframes
+    # Loop over distance limits
+    for j, dist_lim in enumerate(dist_lims):
+    
+        # Trim dataframe to only include data within distance limit
         Pd_df_trim = Pd_df[Pd_df['Repi'] < dist_lim]
+        
+        # Organize dataframe to get mean and variance for each event
         avg_Pd_df = Pd_df_trim.groupby('Event').agg({'Magnitude': 'first','Repi': 'first',f'{TW}s_Pd_logcm': 'mean'}).reset_index()
         var_Pd_df = Pd_df_trim.groupby('Event').agg({'Magnitude': 'first','Repi': 'first',f'{TW}s_Pd_logcm': 'var'}).reset_index()
         Pd = np.array(avg_Pd_df[f'{TW}s_Pd_logcm'])
         mw = np.array(avg_Pd_df['Magnitude'])
-        # kal_rhyp_ind = np.where(kalman_df['Rhyp']<=200)[0]
-        # kalman_pd = np.array(kalman_df[f'{TW}s_Pd_logcm'])[kal_rhyp_ind]
-        # kalman_mw = np.array(kalman_df['Magnitude'])[kal_rhyp_ind]
     
+        # Read in Pd-M scaling model for the time window
         gold_df = pd.read_csv(gold_dfs[i],header=None)
     
-        # Plot mean simualted event Pd
+        # Plot mean simulated event Pd
         ax.scatter(mw,Pd,marker='+',c=colors[j],ec=colors[j],lw=1,s=15,alpha=0.7,label=r'$\mu_{E,sim}$ '+f'< {dist_lim}km')
         
         if dist_lim == 200:
@@ -100,12 +103,8 @@ for i in range(len(windows)):
     ax.xaxis.set_major_locator(MultipleLocator(1))
     ax.yaxis.set_major_locator(MultipleLocator(1))
     ax.plot(gold_df[0],gold_df[1],c='black',label='GM20 model')
-    
-    # ax.scatter(kalman_mw, kalman_pd, marker='.', c='goldenrod', s=15, alpha=0.3, label='Kalman-Filtered ONC')
     ax.tick_params(bottom=True,left=True,labelbottom=True,labelleft=True)
     ax.text(0.975, 0.025, f'TW = {TW}s',color='k',ha='right',fontsize=10, transform=ax.transAxes)
-    # ax.text(0.025, 0.025, f"Obs={round(np.mean(obs_var[:,i]),2)}",color='k',ha='left',fontsize=10, transform=ax.transAxes)
-    # ax.text(0.025, 0.075, f"Sim={round(np.mean(sim_var),2)}",color='k',ha='left',fontsize=10, transform=ax.transAxes)
     ax.grid(alpha=0.5)
     ax.set_xlim(4.5,9.5)
     print(round(np.mean(obs_var[:,i])/np.mean(sim_var),2))
@@ -117,4 +116,4 @@ axs[1,1].legend(handles,labels,bbox_to_anchor=(0.5,-0.25),loc='upper center',fac
 axs[1,1].set_xlabel('Magnitude',**hfont,fontsize=10)
 fig.supylabel('log$\mathregular{_{10}}$(Pd)$\mathregular{_{10km}}$ (cm)',**hfont,fontsize=10)
 plt.subplots_adjust(left=0.1,right=0.975,top=0.975,bottom=0.23,wspace=0.25,hspace=0.15)  
-plt.savefig(f'/Users/tnye/ONC/manuscript/figures/Pd-MW_dist-split.png',dpi=300)
+plt.savefig('/Users/tnye/ONC/manuscript/figures/Fig4_Pd-MW_dist-split.png',dpi=300)

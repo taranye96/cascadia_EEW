@@ -21,7 +21,7 @@ from numpy import cos,sin,deg2rad,rad2deg,arctan2
 import cascadiaEEW_main_fns as emf
 
 # STA/LTA dataframe
-df = pd.read_csv('/Users/tnye/ONC/event_detection/cascadia_sta_lta_polar.csv')
+df = pd.read_csv('/Users/tnye/ONC/event_detection/sta_lta/cascadia_sta_lta_polar.csv')
 
 # Station dataframe
 stn_df = pd.read_csv('/Users/tnye/ONC/data/station_info/all_stations_metadata.csv')
@@ -107,5 +107,5 @@ for i in range(len(runs)):
 # Save to dataframe
 data = {'Run':runs,'Station':stns,'Azimuth':az_list,'BackAzimuth':baz_list,'P':P_list}
 df_out = pd.DataFrame(data)
-df_out.to_csv('/Users/tnye/ONC/event_detection/cascadia_azimuth-amplification.csv')
+df_out.to_csv('/Users/tnye/ONC/event_detection/azimuth/cascadia_azimuth-amplification.csv')
 
