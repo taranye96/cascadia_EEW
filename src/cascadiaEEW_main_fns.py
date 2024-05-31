@@ -50,6 +50,44 @@ def highpass(datastream,fcorner,fsample,order,zerophase=True):
     return highpassedstream
 
 
+def lowpass(datastream,fcorner,fsample,order,zerophase=True):
+    '''
+    Make a highpass zero phase filter on stream object
+    Input:
+        datastream:                 Obspy stream object with data to filter
+        fcorner:                    Corner frequency at which to highpass filter
+        fsample:                    Sample rate in (Hz) - or 1/dt
+        order:                      The numper of poles in the filter (use 2 or 4)
+        zerophase:                  Boolean for whether or not the filter is zero phase
+                                        (that does/doesn't advance or delay 
+                                        certain frequencies). Butterworth filters 
+                                        are not zero phase, they introduce a phase
+                                        shift. If want zero phase, need to filter twice.
+    Output:
+        highpassedstream:           Obspy stream wth highpass filtered data
+    '''
+    from scipy.signal import butter,filtfilt,lfilter
+    from numpy import array
+    
+    data = datastream[0].data
+    
+    fnyquist=fsample/2
+    b, a = butter(order, array(fcorner)/(fnyquist),'lowpass')
+    if zerophase==True:
+        data_filt=filtfilt(b,a,data)
+    else:
+        data_filt=lfilter(b,a,data)
+    
+    
+    ## Make a copy of the original stream object:
+    lowpassedstream = datastream.copy()
+    
+    ## Add the highpassed data to it:
+    lowpassedstream[0].data = data_filt
+    
+    return lowpassedstream
+
+
 def bandpass(datastream,lowcut,highcut,fsample,order,zerophase=True):
     """
     Applies a bandpass filter to an obspy stream.
