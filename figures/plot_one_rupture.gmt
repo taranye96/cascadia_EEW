@@ -50,7 +50,7 @@ out=cascadia-$run_num
 
 # Prepare DEM
 gmt grdcut $DEM -G$topo_no $REGION
-gmt grdgradient topo_no.grd -Ne0.6 -A315 -G$topo
+gmt grdgradient $topo_no -Ne0.6 -A315 -G$topo
 
 # Cpt
 gmt makecpt -C/Users/tnye/cpt/magma_white.cpt -I -T0/$scale/0.02 -Z > $slip_cpt
