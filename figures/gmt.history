@@ -1,8 +1,8 @@
 # GMT 6 Session common arguments shelf
 BEGIN GMT 6.0.0
-B	20:Slip(m):
+B	WesN2p
 J	M
 JM	M2i
-R	-129/-121.75/39.5/51.5
-@L	14
+R	-129/-122.01/37/51.5
+@L	16
 END
