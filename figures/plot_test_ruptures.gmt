@@ -89,11 +89,11 @@ gmt psscale -C$slip_cpt -D0.9i/-0.2i/1.6i/0.12ih -B$inc:"Slip(m)": --FONT_LABEL=
 
 # Add Magnitude
 echo -127.7 40.0 M${Mw} > $Mlabel
-gmt pstext $Mlabel -R -J -F+f14p,white -N -O  >> $out.eps
+gmt pstext $Mlabel -R -J -F+f14p,black -N -O  >> $out.eps
 
 #Convert to raster and move
 echo converting to raster
-gmt psconvert $out.eps -Tj -A -P
+gmt psconvert $out.eps -Tg -A -P
 echo cleaning up
 rm $out.eps
-mv $out.jpg /Users/tnye/ONC/manuscript/figures/rupture_models/test_ruptures/jpeg/${out}.jpg
+mv $out.png /Users/tnye/ONC/manuscript/figures/rupture_models/test_ruptures/png/${out}.png
