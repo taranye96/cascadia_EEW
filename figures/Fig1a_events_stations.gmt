@@ -3,6 +3,10 @@
 #################################
 
 gmt gmtset FONT_ANNOT_PRIMARY=12p,Helvetica
+gmt gmtset MAP_FRAME_TYPE plain
+gmt gmtset MAP_FRAME_PEN thicker,black
+gmt gmtset PS_MEDIA=a2
+gmt gmtset FORMAT_GEO_MAP=ddd
 
 LONMIN=-129
 LONMAX=-122.01 # Longitude range of plots
@@ -14,38 +18,32 @@ SCALE=2i
 BOUNDS="-BWesN -B2p"
 
 
-# Files
+# In Files
 topo=/Users/tnye/DEMs/cascadia30.grd
-event_coords=/Users/tnye/ONC/simulations/cascadia_longer_wfs/events_coords.txt
-pnsn_coords=/Users/tnye/ONC/data/station_info/pnsn_coords.txt
-offshore_coords=/Users/tnye/ONC/data/station_info/offshore_coords.txt
-onshore_coords=/Users/tnye/ONC/data/station_info/onshore_coords.txt
+event_coords=/Users/tnye/ONC/simulations/cascadia/events_coords.txt
+pnsn_coords=/Users/tnye/ONC/files/fakequakes/station_info/pnsn_coords.txt
+offshore_coords=/Users/tnye/ONC/files/fakequakes/station_info/offshore_coords.txt
+onshore_coords=/Users/tnye/ONC/files/fakequakes/station_info/onshore_coords.txt
 slab=/Users/tnye/slab2.0/cas_slab2_dep_02.24.18_contours.txt
 slab2=/Users/tnye/slab_models/Cascadia/cas_slab2_dep_02.24.18.grd
 trench=/Users/tnye/ONC/GMT/data/CascadiaTrench.txt
-current_rupt=/Users/tnye/ONC/rupture_models/cascadia_longer_wfs/cascadia.000000.xy
-# out=events_stations-cascadia_longer_wfs
-out=datamap_detection_grids
+current_rupt=/Users/tnye/ONC/GMT/plotting_files/rupture_xy/cascadia.000000.xy
+topo_no=/Users/tnye/ONC/GMT/topo/topo_no.grd
+topo=/Users/tnye/ONC/GMT/topo/topo.grad
+slip_cpt=/Users/tnye/ONC/GMT/cpt/slip.cpt
+topo_cpt=/Users/tnye/ONC/GMT/cpt/topo.cpt
+bathy_cpt=/Users/tnye/ONC/GMT/cpt/bathy.cpt
+
+# Out files
+legend=/Users/tnye/ONC/GMT/plotting_files/seis.legend
+
+out=cascadia_datamap
 #################################
 
-gmt grdcut $topo -Gtopo_no.grd $REGION
-gmt grdgradient topo_no.grd -Ne0.6 -A315 -Gtopo.grad
-# gmt grdgradient gamma.5338.max.grd -Ne0.6 -A315 -Gtsun.grad
-
-# Convert kml to txt
-gmt kml2gmt $epic_grid_kml -V > epic_detection_grid.txt
-
-#GMT settings
-gmt gmtset MAP_FRAME_TYPE plain
-gmt gmtset MAP_FRAME_PEN thicker,black
-gmt gmtset PS_MEDIA=a2
-gmt gmtset FORMAT_GEO_MAP=ddd
-
-#Cpt
-gmt makecpt -C/Users/tnye/cpt/gray_lt.cpt -T-0.65/0.65/0.01 -Z -V0 > topo.cpt
-gmt makecpt -C/Users/tnye/cpt/gr58_hult.cpt -T-5000/0/1 -Z -I -V0 > bathy.cpt
-gmt makecpt -C/Users/tnye/cpt/gr58_hult.cpt -T-9500/0/1 -Z -I -V0 > bathy2.cpt
-
+# Cpt
+gmt makecpt -C/Users/tnye/cpt/magma_white.cpt -I -T0/$scale/0.02 -Z > $slip_cpt
+gmt makecpt -C/Users/tnye/cpt/gray_lt.cpt -T-0.65/0.65/0.01 -Z -V0 > $topo_cpt
+gmt makecpt -C/Users/tnye/cpt/gr58_hult.cpt -T-5000/0/1 -Z -I -V0 > $bathy_cpt
 #Make map
 gmt psbasemap $REGION -JM$SCALE $BOUNDS -K > $out.eps
 
@@ -72,20 +70,9 @@ gmt psxy $onshore_coords -R$range -J$J -Sn0.2c -G142/83/201 -Wblack -K -O >> ${o
 gmt psxy $offshore_coords -R$range -J$J -Ss0.2c -G240/138/36 -Wblack -K -O >> ${out}.eps
 gmt psxy $pnsn_coords -R$range -J$J -Si0.2c -G54/156/110 -Wblack -K -O >> ${out}.eps
 
-# Plot slab
-# gmt psxy -J -R -W64/64/64 -K -O $slab >> ${out}.eps
-# echo -0 0 > contours
-# echo -10 10 > contours
-# echo -20 20 >> contours
-# echo -30 30 >> contours
-# echo -40 40 >> contours
-# # gmt grdcontour $slab2 -W0.5p,0/102/17 -Ccontours -Acontours  -R -J -O -K >> $out.eps
-# gmt grdcontour $slab2 -W0.5p,0/102/17 -Ccontours -R -J -O -K >> $out.eps
-# cat > seis.legend << END
-
 gmt gmtset FONT_ANNOT_PRIMARY 8
 
-cat > seis.legend << END
+cat > $legend << END
 
 # S 0.1i c 0.14c 235/183/52 0.25p 0.3i Simulated Events
 # G 0.05i
@@ -109,8 +96,7 @@ V 0 1p
 N 1
 END
 
-# gmt pslegend -Dg-129/38+w1.65i/0.75i -R -J -F+p+gwhite seis.legend -O >> $out.eps
-gmt pslegend -Dg-129/37+w1.85i/1.1i -R -J -F+p+gwhite seis.legend -O >> $out.eps
+gmt pslegend -Dg-129/37+w1.85i/1.1i -R -J -F+p+gwhite $legend -O >> $out.eps
 
 #Convert to raster and move
 echo converting to raster
@@ -118,5 +104,5 @@ gmt psconvert $out.eps -Tg -A -P
 # gmt psconvert $out.eps -Tf -A -P
 echo cleaning up
 rm $out.eps
-mv $out.png /Users/tnye/ONC/figures/png/rupture_models/cascadia_longer_wfs/$out.png
+mv $out.png /Users/tnye/ONC/manuscript/figures/unannotated/$out.png
 # mv $out.png /Users/tnye/ONC/figures/pdf/$out.pdf
