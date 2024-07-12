@@ -136,8 +136,8 @@ fig, axs = plt.subplots(2,2,figsize=(6.5,4))
 
 # PGA vs Magnitude
 axs[0,0].scatter(mag_list, pga_res_bchydro, label='BCHydro', s=10, marker='^', facecolors='none', edgecolors='goldenrod', lw=0.3, alpha=0.6)
-axs[0,0].scatter(mag_list, pga_res_nga, label='NGA-SUB', s=10, facecolors='none', edgecolors='mediumpurple', lw=0.3, alpha=0.6)
-custom_bin_edges = np.arange(6.5,9.75,0.25)
+axs[0,0].scatter(mag_list, pga_res_nga, label='NGA-Sub', s=10, facecolors='none', edgecolors='mediumpurple', lw=0.3, alpha=0.6)
+custom_bin_edges = np.linspace(6.5,9.5,11)
 bin_centers = (custom_bin_edges[1:] + custom_bin_edges[:-1]) / 2
 bin_means, _, _ = stats.binned_statistic(np.concatenate((mag_list,mag_list)),np.concatenate((pga_res_nga,pga_res_bchydro)),statistic='mean', bins=custom_bin_edges)
 bin_std, _, _ = stats.binned_statistic(np.concatenate((mag_list,mag_list)),np.concatenate((pga_res_nga,pga_res_bchydro)),statistic='std', bins=custom_bin_edges)
@@ -150,12 +150,12 @@ axs[0,0].grid('-',lw=0.7,alpha=0.5)
 axs[0,0].set_ylim(-4.5,3)
 axs[0,0].xaxis.set_minor_locator(MultipleLocator(0.5))
 axs[0,0].text(-0.15, 1, r'$\bf{(a)}$', ha='right', va='top', transform=axs[0,0].transAxes)
-axs[0,0].set_ylabel(r'$\delta_{PGA}$ $ln\left(\frac{pred}{sim}\right)$',fontsize=10)
+axs[0,0].set_ylabel(r'$\delta_{PGA}$ $ln\left(\frac{GMM}{sim}\right)$',fontsize=10)
 
 # PGA vs Distance
 axs[0,1].scatter(rrup_list, pga_res_bchydro, label='NGA-Sub', s=10, marker='^', facecolors='none', edgecolors='goldenrod', lw=0.3, alpha=0.6)
 axs[0,1].scatter(rrup_list, pga_res_nga, label='NGA-Sub', s=10, facecolors='none', edgecolors='mediumpurple', lw=0.3, alpha=0.6)
-custom_bin_edges = np.logspace(np.log10(1), np.log10(1300), 13)
+custom_bin_edges = np.logspace(np.log10(8), np.log10(1250), 11)
 bin_centers = (custom_bin_edges[1:] + custom_bin_edges[:-1]) / 2
 bin_means, _, _ = stats.binned_statistic(np.concatenate((rrup_list,rrup_list)),np.concatenate((pga_res_nga,pga_res_bchydro)),statistic='mean', bins=custom_bin_edges)
 bin_std, _, _ = stats.binned_statistic(np.concatenate((rrup_list,rrup_list)),np.concatenate((pga_res_nga,pga_res_bchydro)),statistic='std', bins=custom_bin_edges)
@@ -171,7 +171,7 @@ axs[0,1].text(-0.1, 1, r'$\bf{(b)}$', ha='right', va='top', transform=axs[0,1].t
 
 # PGV vs Magnitude
 axs[1,0].scatter(mag_list, pgv_res_nga, label='NGA-Sub', s=10, facecolors='none', edgecolors='mediumpurple', lw=0.3, alpha=0.6)
-custom_bin_edges = np.arange(6.5,9.75,0.25)
+custom_bin_edges = np.linspace(6.5,9.5,11)
 bin_centers = (custom_bin_edges[1:] + custom_bin_edges[:-1]) / 2
 bin_means, _, _ = stats.binned_statistic(mag_list,pgv_res_nga,statistic='mean', bins=custom_bin_edges)
 bin_std, _, _ = stats.binned_statistic(np.concatenate((mag_list,mag_list)),np.concatenate((pga_res_nga,pga_res_bchydro)),statistic='std', bins=custom_bin_edges)
@@ -185,11 +185,11 @@ axs[1,0].axhline(np.log(pgv_sd),lw=0.7,ls='--',c='k')
 axs[1,0].axhline(-np.log(pgv_sd),lw=0.7,ls='--',c='k')
 axs[1,0].text(-0.15, 1, r'$\bf{(c)}$', ha='right', va='top', transform=axs[1,0].transAxes)
 axs[1,0].set_xlabel('Magnitude')
-axs[1,0].set_ylabel(r'$\delta_{PGV}$ $ln\left(\frac{pred}{sim}\right)$',fontsize=10)
+axs[1,0].set_ylabel(r'$\delta_{PGV}$ $ln\left(\frac{GMM}{sim}\right)$',fontsize=10)
 
 # PGV vs Distance
 axs[1,1].scatter(rrup_list, pgv_res_nga, label='NGA-Sub', s=10, facecolors='none', edgecolors='mediumpurple', lw=0.3, alpha=0.6)
-custom_bin_edges = np.logspace(np.log10(1), np.log10(1300), 13)
+custom_bin_edges = np.logspace(np.log10(8), np.log10(1250), 11)
 bin_centers = (custom_bin_edges[1:] + custom_bin_edges[:-1]) / 2
 bin_means, _, _ = stats.binned_statistic(rrup_list, pgv_res_nga, statistic='mean', bins=custom_bin_edges)
 bin_std, _, _ = stats.binned_statistic(np.concatenate((rrup_list,rrup_list)),np.concatenate((pga_res_nga,pga_res_bchydro)),statistic='std', bins=custom_bin_edges)
@@ -232,7 +232,7 @@ fig, axs = plt.subplots(2,2,figsize=(6.5,4))
 # MMI_pga vs Magnitude
 axs[0,0].scatter(mag_list, MMI_res_pga_bchydro, label='BCHydro', s=10, marker='^', facecolors='none', edgecolors='goldenrod', lw=0.3, alpha=0.6)
 axs[0,0].scatter(mag_list, MMI_res_pga_nga, label='NGA-Sub', s=10, facecolors='none', edgecolors='mediumpurple', lw=0.3, alpha=0.6)
-custom_bin_edges = np.arange(6.5,9.75,0.25)
+custom_bin_edges = np.linspace(6.5,9.5,11)
 bin_centers = (custom_bin_edges[1:] + custom_bin_edges[:-1]) / 2
 bin_means, _, _ = stats.binned_statistic(np.concatenate((mag_list,mag_list)),np.concatenate((MMI_res_pga_nga,MMI_res_pga_bchydro)),statistic='mean', bins=custom_bin_edges)
 bin_std, _, _ = stats.binned_statistic(np.concatenate((mag_list,mag_list)),np.concatenate((pga_res_nga,pga_res_bchydro)),statistic='std', bins=custom_bin_edges)
@@ -250,7 +250,7 @@ axs[0,0].text(-0.1, 1, r'$\bf{(a)}$', ha='right', va='top', transform=axs[0,0].t
 # MMI_pga vs Distance
 axs[0,1].scatter(rrup_list, MMI_res_pga_bchydro, label='BCHydro', s=10, marker='^', facecolors='none', edgecolors='goldenrod', lw=0.3, alpha=0.6)
 axs[0,1].scatter(rrup_list, MMI_res_pga_nga, label='NGA-Sub', s=10, facecolors='none', edgecolors='mediumpurple', lw=0.3, alpha=0.6)
-custom_bin_edges = np.logspace(np.log10(1), np.log10(1300), 13)
+custom_bin_edges = np.logspace(np.log10(8), np.log10(1250), 11)
 bin_centers = (custom_bin_edges[1:] + custom_bin_edges[:-1]) / 2
 bin_means, _, _ = stats.binned_statistic(np.concatenate((rrup_list,rrup_list)),np.concatenate((pga_res_nga,pga_res_bchydro)),statistic='mean', bins=custom_bin_edges)
 bin_std, _, _ = stats.binned_statistic(np.concatenate((rrup_list,rrup_list)),np.concatenate((pga_res_nga,pga_res_bchydro)),statistic='std', bins=custom_bin_edges)
@@ -267,7 +267,7 @@ axs[0,1].text(-0.1, 1, r'$\bf{(b)}$', ha='right', va='top', transform=axs[0,1].t
 
 # MMI_pgv vs Magnitude
 axs[1,0].scatter(mag_list, MMI_res_pgv_nga, label='NGA-Sub', s=10, facecolors='none', edgecolors='mediumpurple', lw=0.3, alpha=0.6)
-custom_bin_edges = np.arange(6.5,9.75,0.25)
+custom_bin_edges = np.linspace(6.5,9.5,11)
 bin_centers = (custom_bin_edges[1:] + custom_bin_edges[:-1]) / 2
 bin_means, _, _ = stats.binned_statistic(mag_list,MMI_res_pgv_nga,statistic='mean', bins=custom_bin_edges)
 bin_std, _, _ = stats.binned_statistic(np.concatenate((mag_list,mag_list)),np.concatenate((pga_res_nga,pga_res_bchydro)),statistic='std', bins=custom_bin_edges)
@@ -285,7 +285,7 @@ axs[1,0].text(-0.1, 1, r'$\bf{(c)}$', ha='right', va='top', transform=axs[1,0].t
 
 # MMI_pgv vs Distance
 axs[1,1].scatter(rrup_list, MMI_res_pgv_nga, label='NGA-Sub', s=10, facecolors='none', edgecolors='mediumpurple', lw=0.3, alpha=0.6)
-custom_bin_edges = np.logspace(np.log10(1), np.log10(1300), 13)
+custom_bin_edges = np.logspace(np.log10(8), np.log10(1250), 11)
 bin_centers = (custom_bin_edges[1:] + custom_bin_edges[:-1]) / 2
 bin_means, _, _ = stats.binned_statistic(rrup_list, MMI_res_pgv_nga, statistic='mean', bins=custom_bin_edges)
 bin_std, _, _ = stats.binned_statistic(np.concatenate((rrup_list,rrup_list)),np.concatenate((pga_res_nga,pga_res_bchydro)),statistic='std', bins=custom_bin_edges)
@@ -303,7 +303,7 @@ axs[1,1].text(0.02, 0.98, 'PGV', ha='left', va='top', transform=axs[1,1].transAx
 axs[1,1].text(-0.1, 1, r'$\bf{(d)}$', ha='right', va='top', transform=axs[1,1].transAxes)
 
 # Set y-label
-fig.text(0.01,0.55,r'$\delta_{MMI}$ ${\left(pred - sim\right)}$',va='center',rotation='vertical',fontsize=11)
+fig.text(0.01,0.55,r'$\delta_{MMI}$ ${\left(GMM - sim\right)}$',va='center',rotation='vertical',fontsize=11)
 
 # Make legend symbols opaque
 handles, labels = axs[0,0].get_legend_handles_labels()
@@ -333,7 +333,7 @@ fig, axs = plt.subplots(4,2,figsize=(6.5,6.5))
 # PGD vs Magnitude, no noise
 axs[0,0].scatter(pgd_mag_list, pgd_res_gold_obs_nonoise, label=r'GA21$_{obs}$', marker='1', s=10, lw=0.3, alpha=0.6)
 axs[0,0].scatter(pgd_mag_list, pgd_res_gold_joint_nonoise, label=r'GA21$_{joint}$', marker='x', s=10, lw=0.3, alpha=0.6)
-custom_bin_edges = np.arange(6.5,9.75,0.25)
+custom_bin_edges = np.linspace(6.5,9.5,11)
 bin_centers = (custom_bin_edges[1:] + custom_bin_edges[:-1]) / 2
 bin_means, _, _ = stats.binned_statistic(np.concatenate((pgd_mag_list,pgd_mag_list)),np.concatenate((pgd_res_gold_obs_nonoise,pgd_res_gold_joint_nonoise)),statistic='mean', bins=custom_bin_edges)
 bin_std, _, _ = stats.binned_statistic(np.concatenate((pgd_mag_list,pgd_mag_list)),np.concatenate((pgd_res_gold_obs_nonoise,pgd_res_gold_joint_nonoise)),statistic='std', bins=custom_bin_edges)
@@ -351,7 +351,7 @@ axs[0,0].text(0.02, 0.98, 'No noise', ha='left', va='top', transform=axs[0,0].tr
 # PGD vs Distance, no noise
 axs[0,1].scatter(pgd_rhyp_list, pgd_res_gold_obs_nonoise, label=r'GA21$_{obs}$', marker='1', s=10, lw=0.3, alpha=0.6)
 axs[0,1].scatter(pgd_rhyp_list, pgd_res_gold_joint_nonoise, label=r'GA21$_{joint}$', marker='x', s=10, lw=0.3, alpha=0.6)
-custom_bin_edges = np.logspace(np.log10(1), np.log10(1300), 13)
+custom_bin_edges = np.logspace(np.log10(20), np.log10(1250), 11)
 bin_centers = (custom_bin_edges[1:] + custom_bin_edges[:-1]) / 2
 bin_means, _, _ = stats.binned_statistic(np.concatenate((pgd_rhyp_list,pgd_rhyp_list)),np.concatenate((pgd_res_gold_obs_nonoise,pgd_res_gold_joint_nonoise)),statistic='mean', bins=custom_bin_edges)
 bin_std, _, _ = stats.binned_statistic(np.concatenate((pgd_rhyp_list,pgd_rhyp_list)),np.concatenate((pgd_res_gold_obs_nonoise,pgd_res_gold_joint_nonoise)),statistic='std', bins=custom_bin_edges)
@@ -369,7 +369,7 @@ axs[0,1].text(0.02, 0.98, 'No noise', ha='left', va='top', transform=axs[0,1].tr
 # PGD vs Magnitude, 10th perc noise
 axs[1,0].scatter(pgd_mag_list, pgd_res_gold_obs_10p, label=r'GA21$_{obs}$', marker='1', s=10, lw=0.3, alpha=0.6)
 axs[1,0].scatter(pgd_mag_list, pgd_res_gold_joint_10p, label=r'GA21$_{joint}$', marker='x', s=10, lw=0.3, alpha=0.6)
-custom_bin_edges = np.arange(6.5,9.75,0.25)
+custom_bin_edges = np.linspace(6.5,9.5,11)
 bin_centers = (custom_bin_edges[1:] + custom_bin_edges[:-1]) / 2
 bin_means, _, _ = stats.binned_statistic(np.concatenate((pgd_mag_list,pgd_mag_list)),np.concatenate((pgd_res_gold_obs_10p,pgd_res_gold_joint_10p)),statistic='mean', bins=custom_bin_edges)
 bin_std, _, _ = stats.binned_statistic(np.concatenate((pgd_mag_list,pgd_mag_list)),np.concatenate((pgd_res_gold_obs_10p,pgd_res_gold_joint_10p)),statistic='std', bins=custom_bin_edges)
@@ -386,7 +386,7 @@ axs[1,0].text(0.02, 0.98, '10th perc', ha='left', va='top', transform=axs[1,0].t
 # PGD vs Distance, 10th perc noise
 axs[1,1].scatter(pgd_rhyp_list, pgd_res_gold_obs_10p, label=r'GA21$_{obs}$', marker='1', s=10, lw=0.3, alpha=0.6)
 axs[1,1].scatter(pgd_rhyp_list, pgd_res_gold_joint_10p, label=r'GA21$_{joint}$', marker='x', s=10, lw=0.3, alpha=0.6)
-custom_bin_edges = np.logspace(np.log10(1), np.log10(1300), 13)
+custom_bin_edges = np.logspace(np.log10(20), np.log10(1250), 11)
 bin_centers = (custom_bin_edges[1:] + custom_bin_edges[:-1]) / 2
 bin_means, _, _ = stats.binned_statistic(np.concatenate((pgd_rhyp_list,pgd_rhyp_list)),np.concatenate((pgd_res_gold_obs_nonoise,pgd_res_gold_joint_10p)),statistic='mean', bins=custom_bin_edges)
 bin_std, _, _ = stats.binned_statistic(np.concatenate((pgd_rhyp_list,pgd_rhyp_list)),np.concatenate((pgd_res_gold_obs_nonoise,pgd_res_gold_joint_10p)),statistic='std', bins=custom_bin_edges)
@@ -403,7 +403,7 @@ axs[1,1].text(0.02, 0.98, '10th perc', ha='left', va='top', transform=axs[1,1].t
 # PGD vs Magnitude, 50th perc noise
 axs[2,0].scatter(pgd_mag_list, pgd_res_gold_obs_50p, label=r'GA21$_{obs}$', marker='1', s=10, lw=0.3, alpha=0.6)
 axs[2,0].scatter(pgd_mag_list, pgd_res_gold_joint_50p, label=r'GA21$_{joint}$', marker='x', s=10, lw=0.3, alpha=0.6)
-custom_bin_edges = np.arange(6.5,9.75,0.25)
+custom_bin_edges = np.linspace(6.5,9.5,11)
 bin_centers = (custom_bin_edges[1:] + custom_bin_edges[:-1]) / 2
 bin_means, _, _ = stats.binned_statistic(np.concatenate((pgd_mag_list,pgd_mag_list)),np.concatenate((pgd_res_gold_obs_50p,pgd_res_gold_joint_50p)),statistic='mean', bins=custom_bin_edges)
 bin_std, _, _ = stats.binned_statistic(np.concatenate((pgd_mag_list,pgd_mag_list)),np.concatenate((pgd_res_gold_obs_50p,pgd_res_gold_joint_50p)),statistic='std', bins=custom_bin_edges)
@@ -421,7 +421,7 @@ axs[2,0].text(0.02, 0.98, '50th perc', ha='left', va='top', transform=axs[2,0].t
 # PGD vs Distance, 50th perc noise
 axs[2,1].scatter(pgd_rhyp_list, pgd_res_gold_obs_50p, label=r'GA21$_{obs}$', marker='1', s=10, lw=0.3, alpha=0.6)
 axs[2,1].scatter(pgd_rhyp_list, pgd_res_gold_joint_50p, label=r'GA21$_{joint}$', marker='x', s=10, lw=0.3, alpha=0.6)
-custom_bin_edges = np.logspace(np.log10(1), np.log10(1300), 13)
+custom_bin_edges = np.logspace(np.log10(20), np.log10(1250), 11)
 bin_centers = (custom_bin_edges[1:] + custom_bin_edges[:-1]) / 2
 bin_means, _, _ = stats.binned_statistic(np.concatenate((pgd_rhyp_list,pgd_rhyp_list)),np.concatenate((pgd_res_gold_obs_50p,pgd_res_gold_joint_50p)),statistic='mean', bins=custom_bin_edges)
 bin_std, _, _ = stats.binned_statistic(np.concatenate((pgd_rhyp_list,pgd_rhyp_list)),np.concatenate((pgd_res_gold_obs_50p,pgd_res_gold_joint_50p)),statistic='std', bins=custom_bin_edges)
@@ -438,7 +438,7 @@ axs[2,1].text(0.02, 0.98, '50th perc', ha='left', va='top', transform=axs[2,1].t
 # PGD vs Magnitude, 90th perc noise
 axs[3,0].scatter(pgd_mag_list, pgd_res_gold_obs_90p, label=r'GA21$_{obs}$', marker='1', s=10, lw=0.3, alpha=0.6)
 axs[3,0].scatter(pgd_mag_list, pgd_res_gold_joint_90p, label=r'GA21$_{joint}$', marker='x', s=10, lw=0.3, alpha=0.6)
-custom_bin_edges = np.arange(6.5,9.75,0.25)
+custom_bin_edges = np.linspace(6.5,9.5,11)
 bin_centers = (custom_bin_edges[1:] + custom_bin_edges[:-1]) / 2
 bin_means, _, _ = stats.binned_statistic(np.concatenate((pgd_mag_list,pgd_mag_list)),np.concatenate((pgd_res_gold_obs_90p,pgd_res_gold_joint_90p)),statistic='mean', bins=custom_bin_edges)
 bin_std, _, _ = stats.binned_statistic(np.concatenate((pgd_mag_list,pgd_mag_list)),np.concatenate((pgd_res_gold_obs_90p,pgd_res_gold_joint_90p)),statistic='std', bins=custom_bin_edges)
@@ -456,7 +456,7 @@ axs[3,0].text(0.02, 0.98, '90th perc', ha='left', va='top', transform=axs[3,0].t
 # PGD vs Distance, 90th perc noise
 axs[3,1].scatter(pgd_rhyp_list, pgd_res_gold_obs_90p, label=r'GA21$_{obs}$', marker='1', s=10, lw=0.3, alpha=0.6)
 axs[3,1].scatter(pgd_rhyp_list, pgd_res_gold_joint_90p, label=r'GA21$_{joint}$', marker='x', s=10, lw=0.3, alpha=0.6)
-custom_bin_edges = np.logspace(np.log10(1), np.log10(1300), 13)
+custom_bin_edges = np.logspace(np.log10(20), np.log10(1250), 11)
 bin_centers = (custom_bin_edges[1:] + custom_bin_edges[:-1]) / 2
 bin_means, _, _ = stats.binned_statistic(np.concatenate((pgd_rhyp_list,pgd_rhyp_list)),np.concatenate((pgd_res_gold_obs_90p,pgd_res_gold_joint_90p)),statistic='mean', bins=custom_bin_edges)
 bin_std, _, _ = stats.binned_statistic(np.concatenate((pgd_rhyp_list,pgd_rhyp_list)),np.concatenate((pgd_res_gold_obs_90p,pgd_res_gold_joint_90p)),statistic='std', bins=custom_bin_edges)
@@ -472,7 +472,7 @@ axs[3,1].text(-0.1, 1, r'$\bf{(h)}$', ha='right', va='top', transform=axs[3,1].t
 axs[3,1].text(0.02, 0.98, '90th perc', ha='left', va='top', transform=axs[3,1].transAxes)
 
 # Set y label
-fig.text(0.01,0.57,r'$\delta_{PGD}$ $ln\left(\frac{pred}{sim}\right)$',va='center',rotation='vertical',fontsize=11)
+fig.text(0.01,0.57,r'$\delta_{PGD}$ $ln\left(\frac{GMM}{sim}\right)$',va='center',rotation='vertical',fontsize=11)
 
 # Make legend symbols opaque
 handles, labels = axs[0,0].get_legend_handles_labels()
