@@ -19,31 +19,33 @@ from shutil import copy, copy2
 import os
 import time
 
+proj_dir = '/Users/tnye/Library/CloudStorage/OneDrive-DOI/UO-projects/ONC-EEW'
+
 ########                            GLOBALS                             ########
-home='/Users/tnye/ONC/simulations/'
+home='/Users/tnye/cascadia_simulations/'
 project_name='cascadia'
 run_name='cascadia'
 ################################################################################
 
 
 ##############         What do you want to do?
-init=1
-make_ruptures=1
-make_GFs=1
-make_synthetics=1
-make_waveforms=1
-make_hf_waveforms=1
+init=0
+make_ruptures=0
+make_GFs=0
+make_synthetics=0
+make_waveforms=0
+make_hf_waveforms=0
 match_filter=1
 # Things that only need to be done once
 load_distances=0
-G_from_file=0
+G_from_file=1
 
 
 # DEFINE PARAMETERS
 # Runtime parameters 
-ncpus=16                                     # how many CPUS you want to use for parallelization (needs ot be at least 2)
+ncpus=10                                     # how many CPUS you want to use for parallelization (needs ot be at least 2)
 Nrealizations=4                              # Number of fake ruptures to generate per magnitude bin
-hot_start=0                                  # If code quits in the middle of running, it will pick back up at this index
+hot_start=109                                  # If code quits in the middle of running, it will pick back up at this index
 
 # File parameters
 model_name='cascadia.mod'                    # Velocity model file name
@@ -57,7 +59,7 @@ distances_name='cascadia'                        # Name of matrix with estimated
 # Source parameters
 #UTM_zone='10T' # UTM_zone for rupture region 
 UTM_zone='10U'
-time_epi=UTCDateTime('2023-03-22T00:00:00Z') # Origin time of event (can set to any time, as long as it's not in the future)
+time_epi=UTCDateTime('2023-03-23T00:00:00Z') # Origin time of event (can set to any time, as long as it's not in the future)
 target_Mw=np.linspace(6.8,9.5,28)     # Desired magnitude(s), can either be one value or an array
 hypocenter=None                              # Coordinates of subfault closest to desired hypocenter, or set to None for random
 force_hypocenter=False                       # Set to True if hypocenter specified
@@ -89,8 +91,8 @@ mesh_name = f'{fault_base}.mshout'
 
 # WAVEFORM PARAMETERS
 # Green's Functions parameters
-GF_list='pnsn.gflist'                          # Stations file name
-G_name='pnsn'                                  # Basename you want for the Green's functions matrices
+GF_list='onc_onshore.gflist'                          # Stations file name
+G_name='onc_onshore'                                  # Basename you want for the Green's functions matrices
 
 # fk parameters
 # used to solve wave eq in frequency domain 
@@ -125,7 +127,7 @@ baseline_Qc=150
 zero_phase=False                              # If True, filters waveforms twice to remove phase, else filters once
 order=4                                      # Number of poles for filters
 fcorner_low=0.998                                # Corner frequency at which to filter waveforms (needs to be between 0 and the Nyquist frequency)
-fcorner_high=0.1
+fcorner_high=0.3
 ###############################################################################
 
 start = time.time()
@@ -133,27 +135,27 @@ start = time.time()
 #Initalize project folders
 if init==1:
     fakequakes.init(home,project_name)
-copy2(f'/Users/tnye/ONC/files/fakequakes/structure/{model_name}', home+project_name+'/structure')
-copy2(f'/Users/tnye/ONC/files/fakequakes/model_info/{fault_name}', home+project_name+'/data/model_info')
-copy2('/Users/tnye/ONC/files/fakequakes/station_info' + GF_list, home+project_name+'/data/station_info')
-copy2(f'/Users/tnye/ONC/files/fakequakes/model_info/{slab_name}', home+project_name+'/data/model_info')
-copy2(f'/Users/tnye/ONC/files/fakequakes/model_info/{mesh_name}', home+project_name+'/data/model_info')
+copy2(f'{proj_dir}/files/fakequakes/structure/{model_name}', home+project_name+'/structure')
+copy2(f'{proj_dir}/files/fakequakes/model_info/{fault_name}', home+project_name+'/data/model_info')
+copy2(f'{proj_dir}/files/fakequakes/station_info/' + GF_list, home+project_name+'/data/station_info')
+copy2(f'{proj_dir}/files/fakequakes/model_info/{slab_name}', home+project_name+'/data/model_info')
+copy2(f'{proj_dir}/files/fakequakes/model_info/{mesh_name}', home+project_name+'/data/model_info')
 
-if load_distances==1:
-    source_folder = f'/Users/tnye/ONC/data/distances/{fault_base}/'
-    destination_folder = home+project_name+'/data/distances/'
-    for file_name in os.listdir(source_folder):
-        source = source_folder + file_name
-        destination = destination_folder + file_name
-        copy(source, destination)
+# if load_distances==1:
+#     source_folder = f'/Users/tnye/ONC/data/distances/{fault_base}/'
+#     destination_folder = home+project_name+'/data/distances/'
+#     for file_name in os.listdir(source_folder):
+#         source = source_folder + file_name
+#         destination = destination_folder + file_name
+#         copy(source, destination)
 
-if G_from_file==1:
-    source_folder = f'/Users/tnye/ONC/data/GFs/{fault_base}.{G_name}/'
-    destination_folder = home+project_name+'/GFs/matrices/'
-    for file_name in os.listdir(source_folder):
-        source = source_folder + file_name
-        destination = destination_folder + file_name
-        copy(source, destination)
+# if G_from_file==1:
+#     source_folder = f'/Users/tnye/ONC/data/GFs/{fault_base}.{G_name}/'
+#     destination_folder = home+project_name+'/GFs/matrices/'
+#     for file_name in os.listdir(source_folder):
+#         source = source_folder + file_name
+#         destination = destination_folder + file_name
+#         copy(source, destination)
 
 
 # Make a text file with the parameters
@@ -179,8 +181,6 @@ if make_ruptures==1:
                 ncpus,mean_slip_name=mean_slip_name,force_magnitude=force_magnitude,force_area=force_area,
                 hypocenter=hypocenter,force_hypocenter=force_hypocenter,shear_wave_fraction_shallow=shear_wave_fraction_shallow,
                 shear_wave_fraction_deep=shear_wave_fraction_deep,max_slip_rule=max_slip_rule)
-
-ncpus = 16
 
 # Prepare waveforms and synthetics       
 if make_GFs==1 or make_synthetics==1:

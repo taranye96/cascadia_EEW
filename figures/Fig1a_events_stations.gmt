@@ -17,27 +17,30 @@ REGION=-R${LONMIN}/${LONMAX}/${LATMIN}/${LATMAX}
 SCALE=2i
 BOUNDS="-BWesN -B2p"
 
+home=/Users/tnye/Library/CloudStorage/OneDrive-DOI/UO-projects
+
 
 # In Files
-topo=/Users/tnye/DEMs/cascadia30.grd
-event_coords=/Users/tnye/ONC/simulations/cascadia/events_coords.txt
-pnsn_coords=/Users/tnye/ONC/files/fakequakes/station_info/pnsn_coords.txt
-offshore_coords=/Users/tnye/ONC/files/fakequakes/station_info/offshore_coords.txt
-onshore_coords=/Users/tnye/ONC/files/fakequakes/station_info/onshore_coords.txt
-slab=/Users/tnye/slab2.0/cas_slab2_dep_02.24.18_contours.txt
-slab2=/Users/tnye/slab_models/Cascadia/cas_slab2_dep_02.24.18.grd
-trench=/Users/tnye/ONC/GMT/data/CascadiaTrench.txt
-current_rupt=/Users/tnye/ONC/GMT/plotting_files/rupture_xy/cascadia.000000.xy
-topo_no=/Users/tnye/ONC/GMT/topo/topo_no.grd
-topo=/Users/tnye/ONC/GMT/topo/topo.grad
-slip_cpt=/Users/tnye/ONC/GMT/cpt/slip.cpt
-topo_cpt=/Users/tnye/ONC/GMT/cpt/topo.cpt
-bathy_cpt=/Users/tnye/ONC/GMT/cpt/bathy.cpt
+topo=${home}/ONC-EEW/GMT/data/DEMs/cascadia30.grd
+#event_coords=/Users/tnye/ONC/simulations/cascadia/events_coords.txt
+event_coords=${home}/ONC-EEW/files/events_coords.txt
+pnsn_coords=${home}/ONC-EEW/files/fakequakes/station_info/pnsn_coords.txt
+offshore_coords=${home}/ONC-EEW/files/fakequakes/station_info/offshore_coords.txt
+onshore_coords=${home}/ONC-EEW/files/fakequakes/station_info/onshore_coords.txt
+slab=${home}/ONC-EEW/slab2.0/cas_slab2_dep_02.24.18_contours.txt
+slab2=${home}/ONC-EEW/slab_models/Cascadia/cas_slab2_dep_02.24.18.grd
+trench=${home}/ONC-EEW/GMT/data/CascadiaTrench.txt
+current_rupt=${home}/ONC-EEW/GMT/plotting_files/rupture_xy/cascadia.000000.xy
+topo_no=${home}/ONC-EEW/GMT/topo/topo_no.grd
+topo=${home}/ONC-EEW/GMT/topo/topo.grad
+slip_cpt=/${home}/ONC-EEW/GMT/cpt/slip.cpt
+topo_cpt=${home}/ONC-EEW/GMT/cpt/topo.cpt
+bathy_cpt=${home}/ONC-EEW/GMT/cpt/bathy.cpt
 
 # Out files
-legend=/Users/tnye/ONC/GMT/plotting_files/seis.legend
+legend=${home}/ONC-EEW/GMT/plotting_files/seis.legend
 
-out=cascadia_datamap
+out=cascadia_datamap_v2
 #################################
 
 # Cpt
@@ -104,5 +107,5 @@ gmt psconvert $out.eps -Tg -A -P
 # gmt psconvert $out.eps -Tf -A -P
 echo cleaning up
 rm $out.eps
-mv $out.png /Users/tnye/ONC/manuscript/figures/unannotated/$out.png
+mv $out.png ${home}/ONC-EEW/manuscript/figures/unannotated/$out.png
 # mv $out.png /Users/tnye/ONC/figures/pdf/$out.pdf

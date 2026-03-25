@@ -18,15 +18,10 @@ import numpy as np
 import pandas as pd
 from mpi4py import MPI
 from obspy.signal.trigger import classic_sta_lta
-from obspy.signal.trigger import plot_trigger
-import matplotlib.pyplot as plt
 from obspy.core import UTCDateTime
-from datetime import datetime
-import matplotlib.dates as mdates
 
 # Local Imports
 import cascadiaEEW_main_fns as emf
-import elarmS_picker as picker
 
 ###################### Set up parallelization parameters ######################
 
@@ -36,34 +31,39 @@ rank = comm.Get_rank()
 
 ncpus = size
 
+home = '/Users/tnye/Library/CloudStorage/OneDrive-DOI/UO-projects/ONC-EEW'
+
 # Name of batch for simulations
 batch = 'cascadia'
 
 # Home directory where waveforms are stored
-home_dir = f'/Users/tnye/ONC/simulations/{batch}/waveforms_data_curation'
+# home_dir = f'{home}/simulations/{batch}/waveforms_data_curation'
+home_dir = '/Users/tnye/cascadia_simulations'
 
 # Names of station folders in the waveforms directory
 stn_types = ['Cas-ONC-Onshore-StrongMotion','Cas-ONC-Offshore-StrongMotion',
              'Cas-PNSN-Onshore-StrongMotion']
 
 # Read in list of ruptures
-ruptures = np.genfromtxt(f'/Users/tnye/ONC/simulations/{batch}/data/ruptures.list',dtype=str)
+ruptures = np.genfromtxt(f'{home}/simulations/{batch}/data/ruptures.list',dtype=str)
 
 # Read in arrival time dataframe
-arriv_df = pd.read_csv(f'/Users/tnye/ONC/event_detection/p_waves/{batch}_parrivals.csv')
+arriv_df = pd.read_csv(f'{home}/event_detection/p_waves/{batch}_arrivals.csv')
+
+pad = 1
 
 # Set up folder to save sta_lta csv files for different ranks (parallelized)
-outdir = '/Users/tnye/ONC/event_detection/sta_lta/sta_lta_mpi_polar'
+outdir = f'{home}/event_detection/sta_lta/sta_lta_mpi_{pad}s'
 if not path.exists(outdir):
-    makedirs(outdir)
+    makedirs(outdir, exist_ok=True)
 
 # Set up folder for figures of outlier pick times (large discrepancy between
 # STA/LTA pick and the true arrival time) 
-figdir = '/Users/tnye/ONC/event_detection/plots/outliers/polarized'
+figdir = f'{home}/event_detection/plots/outliers/polarized'
 if not path.exists(f'{figdir}/positive'):
-    makedirs(f'{figdir}/positive')
+    makedirs(f'{figdir}/positive', exist_ok=True)
 if not path.exists(f'{figdir}/negative'):
-    makedirs(f'{figdir}/negative')
+    makedirs(f'{figdir}/negative', exist_ok=True)
 
 # Are we using the polarization filter for the ONC parameter test?
 polarize = True
@@ -71,7 +71,7 @@ polarize = True
 ############################# Start Parallelization ###########################
 
 if rank == 0:
-    sendbuf = np.arange(float(len(ruptures)))
+    sendbuf = np.arange(len(ruptures), dtype=np.int32)
 
     # count: the size of each sub-task
     ave, res = divmod(sendbuf.size, ncpus)
@@ -91,9 +91,9 @@ else:
 comm.Bcast(count, root=0)
 
 # initialize recvbuf on all processes
-recvbuf = np.zeros(count[rank])
+recvbuf = np.zeros(count[rank],dtype=np.int32)
 
-comm.Scatterv([sendbuf, count, displ, MPI.DOUBLE], recvbuf, root=0)
+comm.Scatterv([sendbuf, count, displ, MPI.INT], recvbuf, root=0)
 print('Rank: '+str(rank)+' received data='+str(recvbuf))
 
 
@@ -113,14 +113,9 @@ p_res = []
 onc_triggered = []
 onc_res = []
 onc_pick = []
-obspy_triggered = []
-obspy_res = []
-obspy_pick = []
-obspy_channel = []
-elarmS_triggered = []
-elarmS_res = []
-elarmS_pick = []
-elarmS_channel = []
+epic_triggered = []
+epic_res = []
+epic_pick = []
 mags = []
 rhyp_list = []
     
@@ -129,7 +124,7 @@ for index in recvbuf:
     krup = int(index)
     rupture = ruptures[krup]
     
-    run = rupture.replace('.rupt','')
+    run = rupture.replace('.rupt','').replace('cascadia.','cascadia-')
     
     print(run)
     
@@ -140,13 +135,13 @@ for index in recvbuf:
         wf_dir = f'{home_dir}/{stn_type}'
         
         # Gather waveforms
-        bb_files_Z = np.array(sorted(glob(f"{wf_dir}/*SignalwithNoise/*{run.replace('.','-')}/*HNZ.mseed")))
-        bb_files_N = np.array(sorted(glob(f"{wf_dir}/*SignalwithNoise/*{run.replace('.','-')}/*HNN.mseed")))
-        bb_files_E = np.array(sorted(glob(f"{wf_dir}/*SignalwithNoise/*{run.replace('.','-')}/*HNE.mseed")))
+        bb_files_Z = np.array(sorted(glob(f"{wf_dir}/*SignalwithNoise/*{run}/*HNZ.mseed")))
+        bb_files_N = np.array(sorted(glob(f"{wf_dir}/*SignalwithNoise/*{run}/*HNN.mseed")))
+        bb_files_E = np.array(sorted(glob(f"{wf_dir}/*SignalwithNoise/*{run}/*HNE.mseed")))
         
-        noise_files_Z = np.array(sorted(glob(f"{wf_dir}/*_Noise/*{run.replace('.','-')}/*HNZ.mseed")))
-        noise_files_N = np.array(sorted(glob(f"{wf_dir}/*_Noise/*{run.replace('.','-')}/*HNN.mseed")))
-        noise_files_E = np.array(sorted(glob(f"{wf_dir}/*_Noise/*{run.replace('.','-')}/*HNE.mseed")))
+        noise_files_Z = np.array(sorted(glob(f"{wf_dir}/*_Noise/*{run}/*HNZ.mseed")))
+        noise_files_N = np.array(sorted(glob(f"{wf_dir}/*_Noise/*{run}/*HNN.mseed")))
+        noise_files_E = np.array(sorted(glob(f"{wf_dir}/*_Noise/*{run}/*HNE.mseed")))
         
         # Loop over waveforms
         for i_file in range(len(bb_files_Z)):
@@ -159,7 +154,7 @@ for index in recvbuf:
             stn =  st_acc_unfilt_E[0].stats.station.split('.')[0]
             
             # Extract event info from rupture .log file
-            with open(f'/Users/tnye/ONC/simulations/{batch}/output/ruptures/{run}.log') as f:
+            with open(f"{home}/simulations/{batch}/output/ruptures/{run}.log") as f:
                 lines = f.readlines()
                 
                 # Get hypocenter coordinates
@@ -196,163 +191,48 @@ for index in recvbuf:
             sec = int(full_sec.split('.')[0])
             micsec = int(full_sec.split('.')[1][:-1])
             
-            
-            ###################################################################
-            
-            ## Test using elarmS (EPIC) picker
-            components = ['N','E','Z']
-            
-            st = Stream()
-            st.append(st_acc_unfilt_N[0])
-            st.append(st_acc_unfilt_E[0])
-            st.append(st_acc_unfilt_Z[0])
-            
-            st[0].stats.channel = 'HNN'
-            st[1].stats.channel = 'HNE'
-            st[2].stats.channel = 'HNZ'
-            
-            true_p = UTCDateTime(true_arriv)
-            sig_ind = np.where(st[0].times('UTCDateTime') >= true_p)[0]
-            
-            elarms_pick_times = []
-            trig_ind = []
-            
-            for i, tr in enumerate(st):
-                D_series,V_series,A_series,N,S = picker.SUBROUTINE_TO_GROUND(tr)
-                _,_,_,stalta = picker.SUBROUTINE_PICKER(V_series,tr)
-                thresh_ind = np.where(np.array(stalta) >= 20)[0]
-                
-                try:
-                    t_trig = tr.times('UTCDateTime')[np.intersect1d(sig_ind, thresh_ind)[0]]
-                    elarms_pick_times.append(t_trig)
-                    trig_ind.append(i)
-                except:
-                    continue
-            
-            if len(trig_ind) > 0:
-                pick_ind = np.where(np.array(elarms_pick_times)==np.min(np.array(elarms_pick_times)))[0][0]
-                elarmS_triggered.append('Yes')
-                elarmS_pick.append(elarms_pick_times[pick_ind])
-                elarmS_res.append(true_p - UTCDateTime(elarms_pick_times[pick_ind]))
-                elarmS_channel.append(components[pick_ind])
-            else:
-                elarmS_triggered.append('No')
-                elarmS_pick.append(np.nan)
-                elarmS_res.append(np.nan)
-                elarmS_channel.append(np.nan)
-            
-            # fig, axs = plt.subplots(2,1)
-            # axs[0].plot(tr.times('UTCDateTime'),V_series,color='k',lw=1)
-            # axs[0].vlines(UTCDateTime(elarms_pick_times[0]),np.min(V_series),np.max(V_series),color='red',label='P-arrival pick',lw=1)
-            # axs[0].grid(linestyle='-',alpha=0.5)
-            # axs[0].vlines(UTCDateTime(true_p),np.min(V_series),np.max(V_series),color='blue',label='True P-arrival',lw=1)
-            # axs[0].set_xlabel('Time (s)')
-            # axs[0].set_ylabel('Amplitude (m/s)')
-            # axs[0].legend(facecolor='white')
-            # axs[0].text(0.98,0.1,f'M{round(mag,1)}',ha='right',transform = axs[0].transAxes)
-            # axs[0].text(0.98,0.02,f'Rhyp = {round(rhyp)} (km)',ha='right',transform = axs[0].transAxes)
-            
-            # axs[1].plot(st_vel_filt[0].times(),cft_vel,color='k')
-            # axs[1].grid(linestyle='-',alpha=0.5)
-            # axs[1].hlines(thresh, np.min(st_vel_filt[0].times()), np.max(st_vel_filt[0].times()),
-            #               ls='--', lw=1, color='red',label='triggering threshold')
-            # axs[1].set_xlabel('Time (s)')
-            # axs[1].set_ylabel('STA/LTA')
-            # axs[1].legend(facecolor='white')
-            # fig.suptitle(f'{stn}')
-            # plt.subplots_adjust(left=0.15,hspace=0.3,top=0.925)
 
             ###################################################################
             
+            # Testing usng Obspy with EPIC parameters
+            
+            ## Vertical component only
+            
+            st = Stream()
+            st.append(st_acc_unfilt_Z[0])
+            st[0].stats.channel = 'HNZ'
+            
+            true_p = UTCDateTime(true_arriv)
+            sig_ind = np.where(st[0].times('UTCDateTime') >= true_p-pad)[0][0]
+            
             ## Test using Obspy with EPIC parameters
             sta, lta, thresh = [0.05,5,20]
-            components = ['N','E','Z']
             
             # Highpass filter acceleration at 0.075 Hz
-            st_acc_filt_E = emf.highpass(st_acc_unfilt_E,1/15,1/dt,4,zerophase=False)
-            st_acc_filt_N = emf.highpass(st_acc_unfilt_N,1/15,1/dt,4,zerophase=False)
             st_acc_filt_Z = emf.highpass(st_acc_unfilt_Z,1/15,1/dt,4,zerophase=False)
             
             # Integrate to velocity and highpass filter again (EPIC only)
-            st_vel_unfilt_E = emf.accel_to_veloc(st_acc_filt_E)
-            st_vel_filt_E = emf.highpass(st_vel_unfilt_E,1/15,1/dt,4,zerophase=False)
-            st_vel_unfilt_N = emf.accel_to_veloc(st_acc_filt_N)
-            st_vel_filt_N = emf.highpass(st_vel_unfilt_N,1/15,1/dt,4,zerophase=False)
             st_vel_unfilt_Z = emf.accel_to_veloc(st_acc_filt_Z)
             st_vel_filt_Z = emf.highpass(st_vel_unfilt_Z,1/15,1/dt,4,zerophase=False)
         
             # Run obspy STA/LTA algorithm
-            cft_E = classic_sta_lta(st_vel_filt_E[0].data, int(sta * 1/dt), int(lta * 1/dt))
-            cft_N = classic_sta_lta(st_vel_filt_N[0].data, int(sta * 1/dt), int(lta * 1/dt))
             cft_Z = classic_sta_lta(st_vel_filt_Z[0].data, int(sta * 1/dt), int(lta * 1/dt))
             
-            # Initialize lists
-            trig_ind = []
-            obspy_pick_times = []
-            
             # Get indices of where STA/LTA passed threshold 
-            thresh_ind_N = np.where(np.array(cft_N) >= thresh)[0]
-            thresh_ind_E = np.where(np.array(cft_E) >= thresh)[0]
             thresh_ind_Z = np.where(np.array(cft_Z) >= thresh)[0]
+            thresh_sig_Z = thresh_ind_Z[np.where(thresh_ind_Z >= sig_ind)[0]]
+                                    
             
             # Check for each component if algorithm was triggered
-            if len(np.where(sig_ind == thresh_ind_N)[0])>0:
-                trig_ind.append(0)
-                obspy_pick_times.append(st_vel_filt_N[0].times('UTCDateTime')[np.where(sig_ind == thresh_ind_N)[0][0]])
-            if len(np.where(sig_ind == thresh_ind_E)[0])>0:
-                trig_ind.append(1)
-                obspy_pick_times.append(st_vel_filt_E[0].times('UTCDateTime')[np.where(sig_ind == thresh_ind_E)[0][0]])
-            if len(np.where(sig_ind == thresh_ind_Z)[0])>0:
-                trig_ind.append(2)
-                obspy_pick_times.append(st_vel_filt_Z[0].times('UTCDateTime')[np.where(sig_ind == thresh_ind_Z)[0][0]])
-            
-            # If triggered, add pick time and residuals to lists
-            if len(trig_ind) > 0:
-                pick_ind = np.where(np.array(obspy_pick_times)==np.min(np.array(obspy_pick_times)))[0][0]
-                obspy_triggered.append('Yes')
-                obspy_pick.append(obspy_pick_times[pick_ind])
-                obspy_res.append(UTCDateTime(true_arriv) - obspy_pick_times[pick_ind])
-                obspy_channel.append(components[trig_ind[pick_ind]])
+            if len(thresh_sig_Z)>0:
+                pick = st_vel_filt_Z[0].times('UTCDateTime')[thresh_sig_Z[0]]
+                epic_triggered.append('Yes')
+                epic_pick.append(pick)
+                epic_res.append(UTCDateTime(true_arriv) - pick)
             else:
-                obspy_triggered.append('No')
-                obspy_pick.append(np.nan)
-                obspy_res.append(np.nan)
-                obspy_channel.append(np.nan)
-
-                
-            # # Plot outlier
-            # if np.abs(UTCDateTime(true_arriv) - pick)>=75:
-                
-            #     if (UTCDateTime(true_arriv) - pick)>0:
-            #         folder = 'positive'
-            #     else:
-            #         folder = 'negative'
-            #     fig, axs = plt.subplots(2,1)
-            #     axs[0].plot(st_acc_filt[0].times(),st_vel_filt[0].data,color='k')
-            #     if len(np.where(cft_vel>thresh)[0]>0):
-            #         p_ind = np.where(cft_vel>thresh)[0][0]
-            #         axs[0].vlines(st_vel_filt[0].times()[p_ind],np.min(st_vel_filt[0].data),np.max(st_vel_filt[0].data),color='red',label='P-arrival pick',lw=1)
-            #     axs[0].grid(linestyle='-',alpha=0.5)
-            #     axs[0].vlines(UTCDateTime(true_arriv)-UTCDateTime(st_vel_filt[0].stats.starttime),np.min(st_vel_filt[0].data),np.max(st_vel_filt[0].data),color='blue',label='True P-arrival',lw=1)
-            #     axs[0].set_xlabel('Time (s)')
-            #     axs[0].set_ylabel('Amplitude (m/s)')
-            #     axs[0].legend(facecolor='white')
-            #     axs[0].text(0.98,0.1,f'M{round(mag,1)}',ha='right',transform = axs[0].transAxes)
-            #     axs[0].text(0.98,0.02,f'Rhyp = {round(rhyp)} (km)',ha='right',transform = axs[0].transAxes)
-                
-            #     axs[1].plot(st_vel_filt[0].times(),cft_vel,color='k')
-            #     axs[1].grid(linestyle='-',alpha=0.5)
-            #     axs[1].hlines(thresh, np.min(st_vel_filt[0].times()), np.max(st_vel_filt[0].times()),
-            #                   ls='--', lw=1, color='red',label='triggering threshold')
-            #     axs[1].set_xlabel('Time (s)')
-            #     axs[1].set_ylabel('STA/LTA')
-            #     axs[1].legend(facecolor='white')
-            #     fig.suptitle(f'{stn}')
-            #     plt.subplots_adjust(left=0.15,hspace=0.3,top=0.925)
-               
-                
-            #     plt.savefig(f'{figdir}/{folder}/{run}_{stn}.{channel}_{sta}-{lta}-{thresh}_vel.png',dpi=300)
-            #     plt.close()
+                epic_triggered.append('No')
+                epic_pick.append(np.nan)
+                epic_res.append(np.nan)
             
             
             ###################################################################
@@ -388,46 +268,17 @@ for index in recvbuf:
             cft = classic_sta_lta(data, int(sta * 1/dt), int(lta * 1/dt))
             
             thresh_ind = np.where(np.array(cft) >= thresh)[0]
+            thresh_sig = thresh_ind[np.where(thresh_ind >= sig_ind)[0]]
+            
+            
             
             # Determine if algorithm was triggered
-            if len(np.where(sig_ind == thresh_ind)[0])>0:
-                pick = st_Z_filt[0].times('UTCDateTime')[np.where(sig_ind == thresh_ind)[0][0]]
+            if len(thresh_sig)>0:
+                pick = st_Z_filt[0].times('UTCDateTime')[thresh_sig[0]]
                 onc_triggered.append('Yes')
                 onc_pick.append(pick)
                 onc_res.append(UTCDateTime(true_arriv) - pick)
                 
-                # # Plot outlier
-                # if np.abs(UTCDateTime(true_arriv) - pick)>=75:
-                    
-                #     if (UTCDateTime(true_arriv) - pick)>0:
-                #         folder = 'positive'
-                #     else:
-                #         folder = 'negative'
-                #     fig, axs = plt.subplots(2,1)
-                #     axs[0].plot(st_Z_filtfilt[0].times(),data,color='k')
-                #     if len(np.where(cft>thresh)[0]>0):
-                #         p_ind = np.where(cft>thresh)[0][0]
-                #         axs[0].vlines(st_Z_filtfilt[0].times()[p_ind],np.min(data),np.max(data),color='red',label='P-arrival pick',lw=1)
-                #     axs[0].grid(linestyle='-',alpha=0.5)
-                #     axs[0].vlines(UTCDateTime(true_arriv)-UTCDateTime(st_Z_filtfilt[0].stats.starttime),np.min(data),np.max(data),color='blue',label='True P-arrival',lw=1)
-                #     axs[0].set_xlabel('Time (s)')
-                #     axs[0].set_ylabel(r'Amplitude (m/s$^2$)')
-                #     axs[0].legend(facecolor='white')
-                #     axs[0].text(0.98,0.1,f'M{round(mag,1)}',ha='right',transform = axs[0].transAxes)
-                #     axs[0].text(0.98,0.02,f'Rhyp = {round(rhyp)} (km)',ha='right',transform = axs[0].transAxes)
-                    
-                #     axs[1].plot(st_acc_filt[0].times(),cft,color='k')
-                #     axs[1].grid(linestyle='-',alpha=0.5)
-                #     axs[1].hlines(thresh, np.min(st_acc_filt_filt[0].times()), np.max(st_acc_filt_filt[0].times()),
-                #                   ls='--', lw=1, color='red',label='triggering threshold')
-                #     axs[1].set_xlabel('Time (s)')
-                #     axs[1].set_ylabel('STA/LTA')
-                #     axs[1].legend(facecolor='white')
-                #     fig.suptitle(f'{stn}')
-                #     plt.subplots_adjust(left=0.15,hspace=0.3,top=0.925)
-                   
-                #     plt.savefig(f'{figdir}/{folder}/{run}_{stn}.{channel}_{sta}-{lta}-{thresh}_acc.png',dpi=300)
-                #     plt.close()
             else:
                 onc_triggered.append('No')
                 onc_pick.append(np.nan)
@@ -436,15 +287,20 @@ for index in recvbuf:
     
 # Make dataframe
 data = {'Batch':batches,'Run':rupts,'Magnitude':mags,'Station':stns,
-        '1/5/4.9_triggered':onc_triggered,'1/5/4.9_P-pick time':onc_pick,
-        '1/5/4.9_P-arrival Residual (s)':onc_res,'0.05/5/20_obspy_triggered':obspy_triggered,
-        '0.05/5/20_obspy_P-pick time':obspy_pick,'0.05/5/20_obspy_P-arrival Residual (s)':obspy_res,
-        '0.05/5/20_obspy_channel':obspy_channel,'0.05/5/20_elarmS_triggered':elarmS_triggered,
-        '0.05/5/20_elarmS_P-pick time':elarmS_pick,'0.05/5/20_elarmS_P-arrival Residual (s)':elarmS_res,
-        '0.05/5/20_elarmS_channel':elarmS_channel,}
+        '0.05/5/20_triggered':epic_triggered,
+        '0.05/5/20_P-picktime':epic_pick,'0.05/5/20_P-arrival Residual (s)':epic_res,
+        '1/5/4.9_triggered':onc_triggered, '1/5/4.9_P-picktime':onc_pick,
+        '1/5/4.9_P-arrival Residual (s)':onc_res}
 
 df = pd.DataFrame(data)
-df.to_csv(f'{outdir}/{batch}_sta_lta_{rank}.csv')
+df.to_csv(f'{outdir}/{batch}_sta_lta_{rank}.csv', index=False)
+
+
+# Ensure all file I/O is finished before any rank exits
+comm.Barrier()
+
+# Explicit MPI shutdown (defensive; avoids "exited improperly")
+MPI.Finalize()
 
 
     

@@ -18,11 +18,13 @@ import pandas as pd
 from glob import glob
 from mpi4py import MPI
 from obspy import read
-from scipy.integrate import cumtrapz
+from scipy.integrate import cumulative_trapezoid
 from obspy.core import UTCDateTime
 
 # Local imports
 import cascadiaEEW_main_fns as emf
+
+home = '/Users/tnye/Library/CloudStorage/OneDrive-DOI/UO-projects/ONC-EEW'
 
 ###################### Set up parallelization parameters ######################
 
@@ -38,14 +40,15 @@ batch = 'cascadia'
 # Station name descriptors (used in names of waveform folders)
 stn_types = ['ONC-Onshore','ONC-Offshore','PNSN']
 
-# Read in list of ruptures
-ruptures = np.genfromtxt(f'/Users/tnye/ONC/simulations/{batch}/data/ruptures.list',dtype=str)
+# Read in list of ruptures{
+ruptures = np.genfromtxt(f'{home}/simulations/{batch}/data/ruptures.list',dtype=str)
 
 # Time windoes used to calculate Pd
 windows = [1,2,4,6,12,20]
+# windows = [1,2,4]
 
 # Read in arrival time df
-arriv_df = pd.read_csv('/Users/tnye/ONC/event_detection/p_waves/cascadia_parrivals.csv')
+arriv_df = pd.read_csv(f'{home}/event_detection/p_waves/cascadia_arrivals.csv')
 
 ############################# Start Parallelization ###########################
 
@@ -79,11 +82,14 @@ print('Rank: '+str(rank)+' received data='+str(recvbuf))
 ############################### Do Calculations ###############################
 
 # Make directory to save Pd csv files (parallelize)
-if not path.exists(f'/Users/tnye/ONC/magnitude_estimation/Pd_files/Pd_mpi_files/{batch}/cascadia_noisy'):
-    makedirs(f'/Users/tnye/ONC/magnitude_estimation/Pd_files/Pd_mpi_files/{batch}/cascadia_noisy')
+# if not path.exists(f'{home}/magnitude_estimation/Pd_files/Pd_mpi_files/{batch}/cascadia_noisy'):
+#     makedirs(f'{home}/magnitude_estimation/Pd_files/Pd_mpi_files/{batch}/cascadia_noisy')
+
 
 # Initialize a file to save Pd values to
-outfile = open(f'/Users/tnye/ONC/magnitude_estimation/Pd_files/Pd_mpi_files/{batch}/cascadia_noisy/Pd_{rank}.csv', 'w')
+# outfile = open(f'{home}/magnitude_estimation/Pd_files/Pd_mpi_files/{batch}/cascadia_noisy/Pd_{rank}.csv', 'w')
+# outfile = open(f'{home}/magnitude_estimation/Pd_files/Pd_mpi_files/{batch}/cascadia_raw/Pd_{rank}.csv', 'w')
+outfile = open(f'{home}/magnitude_estimation/Pd_files/Pd_mpi_files/cascadia/fc0.3/Pd_fc0.3_{rank}.csv', 'w')
 outfile.write('Event,Station,Station Type,Magnitude,Rhyp,Repi,1s_Pd_logcm,2s_Pd_logcm,4s_Pd_logcm,6s_Pd_logcm,12s_Pd_logcm,20s_Pd_logcm\n')
 
 for index in recvbuf:
@@ -98,10 +104,12 @@ for index in recvbuf:
     for stations in stn_types:
     
         # Gather mseed files
-        files = sorted(glob(f'/Users/tnye/ONC/simulations/{batch}/waveforms_data_curation/*{stations}*/*SignalwithNoise/*{modified_run}/*HNZ*'))
+        # files = sorted(glob(f'/Users/tnye/cascadia_simulations/*{stations}*/*SignalwithNoise/*{modified_run}/*HNZ*'))
+        # files = sorted(glob(f'/Users/tnye/cascadia_simulations/*{stations}*/*Signal/*{modified_run}/*HNZ*'))
+        files = sorted(glob(f'/Users/tnye/cascadia_simulations/cascadia/output/waveforms/{run}/*bb.HNZ*'))
         
         # Get earthquake info for this batch and run
-        f = open(f'/home/tnye/onc/simulations/{batch}/output/ruptures/{run}.log')
+        f = open(f'{home}/simulations/{batch}/output/ruptures/{modified_run}.log')
         lines = f.readlines()
         mag_line = lines[15]
         mag = float(mag_line.split(' ')[3].split('\n')[0])
@@ -120,7 +128,7 @@ for index in recvbuf:
             # Get P- and S-arrivals
             idx = np.where((np.array(arriv_df['Station'])==stn) &
                             (np.array(arriv_df['Batch'])==batch) & 
-                            (np.array(arriv_df['Run'])==run))[0][0]
+                            (np.array(arriv_df['Run'])==modified_run))[0][0]
        
             p_arriv = UTCDateTime(arriv_df['P-wave arriv'].iloc[idx])
             s_arriv = UTCDateTime(arriv_df['S-wave arriv'].iloc[idx])
@@ -143,8 +151,8 @@ for index in recvbuf:
             acc_times = acc_filt[0].times()
             
             ## Double integrate the acceration time series to get displacement:
-            vel_amplitude = cumtrapz(acc_amplitude,x=acc_times,initial=0)
-            disp_amplitude = cumtrapz(vel_amplitude,x=acc_times,initial=0)
+            vel_amplitude = cumulative_trapezoid(acc_amplitude,x=acc_times,initial=0)
+            disp_amplitude = cumulative_trapezoid(vel_amplitude,x=acc_times,initial=0)
             
             ## Make a copy of the old stream object:
             disp_st = acc_st.copy()
@@ -173,10 +181,13 @@ for index in recvbuf:
                     idx_end = int(idx_start + window*stsamprate)
                     
                     # Calculate Pd
-                    Pd = np.max(np.abs(disp_filt[0].data[idx_start:idx_end+1]))
+                    Pd_m = np.max(np.abs(disp_filt[0].data[idx_start:idx_end+1]))
+                    
+                    # Convert from m to cm
+                    Pd_cm = Pd_m*100
                 
                     ## Get log and correct to 10 km
-                    corrected_Pd = np.log10(Pd*100)+np.log10(rhyp/10)
+                    corrected_Pd = np.log10(Pd_cm)+np.log10(rhyp/10)
                     Pd_list.append(corrected_Pd)
                 else:
                     Pd_list.append(np.nan)

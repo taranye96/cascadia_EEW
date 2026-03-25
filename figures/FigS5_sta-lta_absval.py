@@ -19,6 +19,8 @@ import matplotlib.ticker as ticker
 import matplotlib.colors as colors
 import matplotlib.cm as cmx
 
+home = '/Users/tnye/Library/CloudStorage/OneDrive-DOI/UO-projects/ONC-EEW'
+
 # Name of batch for simulations
 batch = 'cascadia'
 
@@ -27,12 +29,12 @@ batch = 'cascadia'
 shakealert_dtype = 'obspy'
 
 # Get azimuth and P-wave amplification factor
-az_df = pd.read_csv('/Users/tnye/ONC/event_detection/cascadia_azimuth-amplification.csv')
+az_df = pd.read_csv(f'{home}/event_detection/azimuth/cascadia_azimuth-amplification.csv')
 az = az_df['Azimuth']
 P = az_df['P']
 
 # Read in STA/LTA file
-pick_file = f'/Users/tnye/ONC/event_detection/{batch}_sta_lta_polar.csv'
+pick_file = f'{home}/event_detection/sta_lta/{batch}_sta_lta_polar.csv'
 df = pd.read_csv(pick_file)
 
 # Get STA/LTA triggers (Yes or No) 
@@ -66,16 +68,16 @@ rhyp = df['Rhyp(km)'].values
 mag = df['Magnitude'].values
 
 # What % of records were missed
-onc_miss_perc = round(100*len(OncEW_nan_ind)/len(trig_OncEW),2)
-sa_miss_perc = round(100*len(ShakeAlert_nan_ind)/len(trig_ShakeAlert),2)
+onc_miss_perc = round(100*len(OncEW_nan_ind)/len(trig_OncEW))
+sa_miss_perc = round(100*len(ShakeAlert_nan_ind)/len(trig_ShakeAlert))
 
 # What % fo records were detected
-onc_detec_perc = round(100*len(OncEW_trig_ind)/len(trig_OncEW),2)
-sa_detec_perc = round(100*len(ShakeAlert_trig_ind)/len(trig_ShakeAlert),2)
+onc_detec_perc = round(100*len(OncEW_trig_ind)/len(trig_OncEW))
+sa_detec_perc = round(100*len(ShakeAlert_trig_ind)/len(trig_ShakeAlert))
 
 # What % of records have a picktime residual < 1 s?
-onc_res1_perc = round(100*len(np.where(OncEW_res_abs<1)[0])/len(np.where(np.isnan(OncEW_res_abs)==False)[0]),2)
-sa_res1_perc = round(100*len(np.where(ShakeAlert_res_abs<1)[0])/len(np.where(np.isnan(ShakeAlert_res_abs)==False)[0]),2)
+onc_res_pt5perc = round(100*len(np.where(OncEW_res_abs<0.5)[0])/len(np.where(np.isnan(OncEW_res_abs)==False)[0]))
+sa_res_pt5perc = round(100*len(np.where(ShakeAlert_res_abs<0.5)[0])/len(np.where(np.isnan(ShakeAlert_res_abs)==False)[0]))
  
 
 #%%
@@ -101,7 +103,7 @@ axs[0].tick_params(direction="out",labelright=False,labelsize=10)
 axs[0].grid(linestyle='-',alpha=0.25)
 axs[0].set_xlabel(r'$R_{hyp}$ (km)', fontsize=10)
 axs[0].set_ylabel(r'| $\delta_{arr}$ | (s)', fontsize=10)
-axs[0].text(0.02,0.02,r'|$\delta_{arr}$| < 1 s: '+ f'{onc_res1_perc}%',transform=axs[0].transAxes,fontsize=9,va='bottom',ha='left')
+axs[0].text(0.02,0.02,r'|$\delta_{arr}$| < 0.5s s: '+ f'{onc_res_pt5perc}%',transform=axs[0].transAxes,fontsize=9,va='bottom',ha='left')
 
 axs[1].scatter(rhyp,ShakeAlert_res_abs,c=scalarMap.to_rgba(mag),marker='+',lw=0.5,alpha=0.4,s=25)
 axs[1].set_yscale('log')
@@ -117,10 +119,10 @@ axs[1].tick_params(direction="out",labelright=False,labelsize=10)
 axs[1].grid(linestyle='-',alpha=0.25)
 axs[1].set_xlabel(r'$R_{hyp}$ (km)', fontsize=10)
 axs[1].set_ylabel(r'| $\delta_{arr}$ | (s)', fontsize=10)
-axs[1].text(0.02,0.02,r'|$\delta_{arr}$| < 1 s: '+ f'{sa_res1_perc}%',transform=axs[1].transAxes,fontsize=9,va='bottom',ha='left')
+axs[1].text(0.02,0.02,r'|$\delta_{arr}$| < 0.5 s: '+ f'{sa_res_pt5perc}%',transform=axs[1].transAxes,fontsize=9,va='bottom',ha='left')
 
 cax = fig.add_axes([0.125, 0.15, 0.825, 0.07])
 cbar = fig.colorbar(scalarMap, label='Magnitude', cax=cax, ticks=[6.5,7.5,8.5,9.5], orientation="horizontal")
 
 plt.subplots_adjust(left=0.12,right=0.95,top=0.95,bottom=0.45,hspace=0.6,wspace=0.425)
-plt.savefig('/Users/tnye/ONC/manuscript/figures/unannotated/sta-lta_absvalue.png',dpi=400)
+# plt.savefig(f'{home}//manuscript/figures/unannotated/sta-lta_absvalue.png',dpi=400)

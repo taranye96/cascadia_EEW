@@ -35,20 +35,23 @@ rank = comm.Get_rank()
 
 ncpus = size
 
+home = '/Users/tnye/Library/CloudStorage/OneDrive-DOI/UO-projects/ONC-EEW'
+
 # Name of batch for simulations
 batch = 'cascadia'
 
 # Station types (used in names of waveform folders)
-station_types = ['onc_onshore','onc_offshore','pnsn']
+stn_types = ['onc-onshore','onc-offshore',
+             'pnsn']
 
 # Gather .log files
-ruptures = sorted(glob(f'/Users/tnye/ONC/simulations/{batch}/output/ruptures/*.log'))
+ruptures = sorted(glob(f'{home}/simulations/{batch}/output/ruptures/*.log'))
 
 # Read in station metadata
-metadata = pd.read_csv('/Users/tnye/ONC/data/station_info/station_metadata.csv')
+metadata = pd.read_csv(f'{home}/files/fakequakes/station_info/station_metadata.csv')
 
 # Build velocity model
-velmod = TauPyModel(model=f'/Users/tnye/ONC/simulations/{batch}/structure/cascadia.npz') # velocity model
+velmod = TauPyModel(model=f'{home}/files/fakequakes/structure/cascadia.npz') # velocity model
 
 
 ############################# Start Parallelization ###########################
@@ -83,7 +86,8 @@ print('Rank: '+str(rank)+' received data='+str(recvbuf))
 ############################### Do Calculations ###############################
 
 # Initialize file for saving P-wave arrival times
-w = open('/Users/tnye/ONC/event_detection/p_waves/'+batch.split('/')[-1]+f'_arrivals_{rank}.csv', 'w')
+w = open(f'{home}/event_detection/p_waves/mpi_arrivals/'+batch.split('/')[-1]+f'_arrivals_{rank}.csv', 'w')
+# w = open(f'{home}/event_detection/p_waves/cascadia-000002_arrivals.csv', 'w')
 w.write('Batch,Run,Station,Rhyp(km),Repi(km),P-wave arriv,S-wave arriv\n')
 
 for index in recvbuf:
@@ -113,10 +117,10 @@ for index in recvbuf:
     time_epi = UTCDateTime('2023-03-23T00:00:00.00000Z')
     
     # Loop over station types
-    for stn_type in station_types:
+    for stn_type in stn_types:
         
         # Read in station file
-        stn_df = pd.read_csv(f'/Users/tnye/ONC/data/station_info/{stn_type}_list.txt')
+        stn_df = pd.read_csv(f'{home}/files/fakequakes/station_info/{stn_type}_list.txt')
         
         # Get stations and coords
         stations = stn_df['#station']

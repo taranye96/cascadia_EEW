@@ -136,7 +136,7 @@ def accel_to_veloc(acc_timeseries_stream):
         vel_timeseries_stream:          
     '''
     
-    from scipy.integrate import cumtrapz
+    from scipy.integrate import cumulative_trapezoid
     
     ## Get the bsaeline corrected and gain corrected time series:
     acc_amplitude = acc_timeseries_stream[0].data
@@ -145,7 +145,7 @@ def accel_to_veloc(acc_timeseries_stream):
     acc_times = acc_timeseries_stream[0].times()
     
     ## INtegrate the acceration time series to get velocity:
-    vel_amplitude = cumtrapz(acc_amplitude,x=acc_times,initial=0)
+    vel_amplitude = cumulative_trapezoid(acc_amplitude,x=acc_times,initial=0)
     
     ## Make a copy of the old stream object:
     vel_timeseries_stream = acc_timeseries_stream.copy()
@@ -209,9 +209,7 @@ def add_synthetic_gnss_noise(st_E, st_N, st_Z, percentile=50):
     
     from mudpy.forward import gnss_psd
     from mudpy.hfsims import windowed_gaussian,apply_spectrum
-    from mudpy.forward import gnss_psd
     import numpy as np
-    from obspy import read
     
     dt = st_E[0].stats.delta
     

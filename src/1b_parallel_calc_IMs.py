@@ -24,6 +24,8 @@ from mpi4py import MPI
 import shakemaps
 import cascadiaEEW_main_fns as emf
 
+home = '/Users/tnye/Library/CloudStorage/OneDrive-DOI/UO-projects/ONC-EEW'
+
 
 ###################### Set up parallelization parameters ######################
 
@@ -50,13 +52,13 @@ stn_types = ['lf','hf']
 gnss_noise_perc = 10
 
 # Read in station df (contains station names and coordinates)
-stn_df = pd.read_csv(f'/Users/tnye/ONC/files/fakequakes/station_info/{stn_type}_list.txt', delimiter=',')
+stn_df = pd.read_csv(f'/{home}/files/fakequakes/station_info/{stn_type}_list.txt', delimiter=',')
 
 # Read in VS30 df
-vs30_csv = f'/Users/tnye/ONC/files/vs30/vs30_coords_{stn_type}.txt'
+vs30_csv = f'/{home}/files/vs30/vs30_coords_{stn_type}.txt'
 
 # Read in rupture list
-ruptures = np.genfromtxt(f'/Users/tnye/ONC/simulations/{batch}/data/ruptures.list',dtype=str)
+ruptures = np.genfromtxt(f'/{home}/simulations/{batch}/data/ruptures.list',dtype=str)
 
 # Filtering parameters
 fcorner_high = 1/15.   
@@ -102,7 +104,7 @@ for index in recvbuf:
     home_dir = '/Users/tnye/ONC'
     
     # Read in rupture .log file and get magnitude
-    logfile = f"/Users/tnye/ONC/simulations/{batch}/output/ruptures/{rupture.replace('.rupt','.log')}"
+    logfile = f"/{home}/simulations/{batch}/output/ruptures/{rupture.replace('.rupt','.log')}"
     f = open(logfile, 'r')
     lines = f.readlines()
     mag = float(lines[15].split(' ')[-1].split('\n')[0])
@@ -111,14 +113,14 @@ for index in recvbuf:
 
     # Path to save output csv
     if stn_type == 'onc-onshore' and 'lf' in stn_types:
-        flatfile_path = f'/Users/tnye/ONC/flatfiles/groundmotion_analysis/{batch}/{run}_{stn_type}_gnss-{gnss_noise_perc}p.csv'
+        flatfile_path = f'/{home}/flatfiles/groundmotion_analysis/{batch}/{run}_{stn_type}_gnss-{gnss_noise_perc}p.csv'
     elif stn_type == 'onc-onshore' and 'lf' not in stn_types:
-        flatfile_path = f'/Users/tnye/ONC/flatfiles/groundmotion_analysis/{batch}/{run}_{stn_type}_strongmotion.csv'
+        flatfile_path = f'/{home}/flatfiles/groundmotion_analysis/{batch}/{run}_{stn_type}_strongmotion.csv'
     elif stn_type != 'onc-onshore':
-        flatfile_path = f'/Users/tnye/ONC/flatfiles/groundmotion_analysis/{batch}/{run}_{stn_type}.csv'
+        flatfile_path = f'/{home}/flatfiles/groundmotion_analysis/{batch}/{run}_{stn_type}.csv'
     
     # Synthetic miniseed directories
-    wf_dir = f'/Users/tnye/ONC/simulations/{batch}/waveforms_data_curation'
+    wf_dir = f'/{home}/simulations/{batch}/waveforms_data_curation'
     
     # Replace periods for uploading data to Borealist
     modified_run = run.replace('.','-')
@@ -139,17 +141,17 @@ for index in recvbuf:
         lf_noise_files = np.array(sorted(glob(f'{wf_dir}/pnsn-onshore-lowfreq/signal_with_noise/{run}/' + '*.mseed')))
         
     # Get rupture .rupt and .log files
-    rupt_file = f'/Users/tnye/ONC/simulations/{batch}/output/ruptures/{run}.rupt'
-    log_file = f'/Users/tnye/ONC/simulations/{batch}/output/ruptures/{run}.log'
+    rupt_file = f'/{home}/simulations/{batch}/output/ruptures/{run}.rupt'
+    log_file = f'/{home}/simulations/{batch}/output/ruptures/{run}.log'
     
     # Read in station metadata file
-    stn_metadata = pd.read_csv('/Users/tnye/ONC/data/station_info/all_stations_metadata.csv')
+    stn_metadata = pd.read_csv('/{home}/data/station_info/all_stations_metadata.csv')
     
     # Create shakefiles with GMM (BCHydro and NGA-Sub) estimates
     shakemaps.run_shakemaps(batch, rupt_file, vs30_csv, stn_type)
 
     # Read in shakefiles
-    shake_file = f'/Users/tnye/ONC/shakemaps/shakefiles/{batch}/{stn_type}/{run}.shake'
+    shake_file = f'/{home}/shakemaps/shakefiles/{batch}/{stn_type}/{run}.shake'
     shake_df = pd.read_csv(shake_file,delimiter=',')
     
     # Extract GMM estimates from shakefiles

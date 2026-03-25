@@ -183,9 +183,9 @@ def compute_shaking_NGA_Sub(rupt_df):
     '''
     ## Open quake stuff:
     from openquake.hazardlib import imt, const
-    from openquake.hazardlib.gsim.base import RuptureContext
-    from openquake.hazardlib.gsim.base import DistancesContext
-    from openquake.hazardlib.gsim.base import SitesContext
+    from openquake.hazardlib.contexts import RuptureContext
+    from openquake.hazardlib.contexts import DistancesContext
+    from openquake.hazardlib.contexts import SitesContext
     from openquake.hazardlib.gsim.parker_2020 import ParkerEtAl2020SInter
     import pandas as pd
     import numpy as np
