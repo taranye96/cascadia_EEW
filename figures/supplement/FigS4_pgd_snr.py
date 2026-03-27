@@ -149,4 +149,4 @@ axs['D'].legend(loc='upper center', bbox_to_anchor=(0.5,-0.4),facecolor='white',
 axs['D'].text(-0.15, 1, r'$\bf{(d)}$', ha='right', va='top', transform=axs['D'].transAxes)
 
 plt.subplots_adjust(hspace=0.5,wspace=0.35,left=0.165,right=0.975,top=0.975,bottom=0.175)
-plt.savefig(f'{home}/manuscript/figures/main-text/Fig8_PGD_SNR.png',dpi=300)
+# plt.savefig(f'{home}/manuscript/figures/main-text/Fig8_PGD_SNR.png',dpi=300)
