@@ -1,4 +1,4 @@
-This repository contains the codes referenced in Nye et al. (2026). The full reference for the paper is
+This repository contains the codes referenced in the following paper:
 
 *Nye, T. A., V. J. Sahakian, A. Schlesinger, D. Melgar, A. Babaie Mahani, A. Williamson, E. Ferguson, A. Lux, and B. Pirenne (2026). Validation framework for semi-stochastic simulations in Cascadia earthquake early warning. Seismica, 5(2). doi: 10.26443/seismica.v5i1.1411*
 
